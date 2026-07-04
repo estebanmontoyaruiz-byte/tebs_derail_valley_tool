@@ -2961,7 +2961,7 @@ render();
     try{
       const res = await fetch(JSONBIN_BASE+'/b/'+syncConfig.binId, {
         method:'PUT',
-        headers:{'Content-Type':'application/json','X-Access-Key':syncConfig.apiKey},
+        headers:{'Content-Type':'application/json','X-Master-Key':syncConfig.apiKey},
         body: JSON.stringify(buildPayload())
       });
       if(!res.ok) throw new Error(res.status);
@@ -2981,7 +2981,7 @@ render();
     setSyncStatus('☁ Descargando…', 'loading');
     try{
       const res = await fetch(JSONBIN_BASE+'/b/'+syncConfig.binId+'/latest', {
-        headers:{'X-Access-Key':syncConfig.apiKey}
+        headers:{'X-Master-Key':syncConfig.apiKey}
       });
       if(!res.ok) throw new Error(res.status);
       const data = await res.json();
@@ -3025,7 +3025,7 @@ render();
         method:'POST',
         headers:{
           'Content-Type':'application/json',
-          'X-Access-Key': apiKey,
+          'X-Master-Key': apiKey,
           'X-Bin-Name': "Teb's DV Tool",
           'X-Bin-Private':'true'
         },
