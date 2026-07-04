@@ -1,0 +1,3116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teb's Derail Valley Tool v1.8.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#11151a;
+    --panel:#1a2028;
+    --panel-2:#20272f;
+    --ink:#d9d6ca;
+    --ink-dim:#8d96a1;
+    --amber:#e2a33d;
+    --amber-dim:#7a5c2b;
+    --green:#5fb98a;
+    --red:#d1453b;
+    --rule:#2c3640;
+    --paper:#e8e2cf;
+    --paper-ink:#1a1a16;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:15.5px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 60px;}
+
+  header.manifest{
+    border:1px solid var(--rule);
+    border-radius:4px;
+    background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    padding:22px 24px;
+    margin-bottom:22px;
+    position:relative;
+    overflow:hidden;
+  }
+  header.manifest::before{
+    content:"";
+    position:absolute;top:0;left:0;right:0;height:6px;
+    background:repeating-linear-gradient(90deg,var(--amber) 0 10px,transparent 10px 20px);
+    opacity:.55;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin:0 0 6px;
+  }
+  h1{
+    font-family:'Archivo',sans-serif;
+    font-weight:800;
+    font-size:clamp(28px,4vw,42px);
+    letter-spacing:.005em;
+    margin:0 0 8px;
+    color:var(--ink);
+  }
+  .version-badge{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    font-weight:600;
+    color:var(--bg);
+    background:var(--amber);
+    padding:3px 10px;
+    border-radius:3px;
+    vertical-align:middle;
+    margin-left:10px;
+    display:inline-block;
+  }
+  .sub{color:var(--ink-dim);font-size:15px;max-width:680px;margin:0 0 14px;}
+  .reflinks{display:flex;flex-wrap:wrap;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:13px;}
+  .reflinks a{color:var(--amber);text-decoration:none;border-bottom:1px dotted var(--amber-dim);}
+  .reflinks a:hover{color:var(--ink);border-color:var(--ink-dim);}
+
+  .backup-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--rule);}
+  .backup-btn{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    background:transparent;
+    border:1px solid var(--rule);
+    color:var(--ink-dim);
+    padding:7px 12px;
+    border-radius:3px;
+    cursor:pointer;
+    display:inline-block;
+  }
+  .backup-btn:hover{color:var(--ink);border-color:var(--ink-dim);}
+
+  /* ---- pestañas ---- */
+  .tabs-nav{
+    display:flex;
+    gap:4px;
+    margin-bottom:20px;
+    border-bottom:1px solid var(--rule);
+    flex-wrap:wrap;
+  }
+  .tab-btn{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    font-weight:600;
+    letter-spacing:.02em;
+    background:transparent;
+    border:none;
+    color:var(--ink-dim);
+    padding:12px 18px;
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  .tab-btn:hover{color:var(--ink);}
+  .tab-btn.active{color:var(--amber);border-bottom-color:var(--amber);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  section.card{
+    background:var(--panel);
+    border:1px solid var(--rule);
+    border-radius:4px;
+    padding:22px 24px 26px;
+  }
+  section.card h2{
+    font-family:'Archivo',sans-serif;
+    font-weight:800;
+    font-size:24px;
+    margin:0 0 6px;
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  }
+  .tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    color:var(--bg);
+    background:var(--amber);
+    padding:3px 8px;
+    border-radius:2px;
+    text-transform:uppercase;
+  }
+  .card-desc{color:var(--ink-dim);font-size:14px;margin:0 0 18px;}
+
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  .field-row.single{grid-template-columns:1fr;}
+  @media (max-width:560px){
+    .field-row{grid-template-columns:1fr;}
+  }
+  label{display:block;font-size:13px;color:var(--ink-dim);margin-bottom:6px;}
+  label .hint{display:block;font-size:12px;color:var(--ink-dim);opacity:.75;margin-top:2px;}
+  input[type=number], input[type=text], input[type=datetime-local], select, textarea{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--rule);
+    border-radius:3px;
+    color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:15px;
+    padding:10px 11px;
+  }
+  input[type=number], input[type=datetime-local]{font-family:'IBM Plex Mono',monospace;}
+  input:focus, select:focus, textarea:focus{outline:2px solid var(--amber);outline-offset:1px;}
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button{opacity:.6;}
+  select{cursor:pointer;}
+  textarea{resize:vertical;min-height:70px;font-family:'IBM Plex Sans',sans-serif;}
+
+  .input-with-btn{display:flex;gap:8px;}
+  .input-with-btn input{flex:1;}
+  .btn-now{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    background:var(--panel-2);
+    border:1px solid var(--rule);
+    color:var(--ink-dim);
+    padding:0 14px;
+    border-radius:3px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .btn-now:hover{color:var(--amber);border-color:var(--amber-dim);}
+
+  .subhead{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    margin:20px 0 14px;
+    padding-top:16px;
+    border-top:1px dashed var(--rule);
+  }
+  .field-highlight{
+    border:1px solid var(--amber-dim);
+    border-radius:4px;
+    padding:11px 13px;
+    background:rgba(226,163,61,.06);
+  }
+  .field-highlight label{color:var(--amber);}
+
+  .validator-slot{
+    margin-top:18px;
+    border:1px dashed var(--rule);
+    border-radius:4px;
+    padding:15px 17px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    flex-wrap:wrap;
+    background:repeating-linear-gradient(135deg,rgba(255,255,255,.015) 0 8px,transparent 8px 16px);
+  }
+  .validator-slot p{margin:0;font-size:13px;color:var(--ink-dim);}
+  button.validate-btn{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
+    font-size:14px;
+    letter-spacing:.03em;
+    background:var(--amber);
+    color:#1a1304;
+    border:none;
+    border-radius:3px;
+    padding:12px 20px;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:transform .08s ease, filter .15s ease;
+  }
+  button.validate-btn:hover{filter:brightness(1.08);}
+  button.validate-btn:active{transform:translateY(1px) scale(.98);}
+  button.validate-btn.secondary{
+    background:var(--panel-2);
+    color:var(--ink);
+    border:1px solid var(--amber-dim);
+  }
+  button.validate-btn.secondary:hover{border-color:var(--amber);filter:none;background:var(--panel);}
+  button.validate-btn.ghost{
+    background:transparent;
+    color:var(--ink-dim);
+    border:1px solid var(--rule);
+    font-size:13px;
+    padding:9px 14px;
+  }
+  button.validate-btn.ghost:hover{color:var(--ink);border-color:var(--ink-dim);filter:none;}
+
+  .ticket-area{margin-top:16px;min-height:4px;overflow:hidden;}
+  .ticket{
+    background:var(--paper);
+    color:var(--paper-ink);
+    border-radius:2px;
+    padding:17px 19px 15px;
+    font-family:'IBM Plex Mono',monospace;
+    opacity:0;
+    transform:translateY(-14px);
+    transition:opacity .35s ease, transform .35s cubic-bezier(.2,.8,.3,1.2);
+    position:relative;
+  }
+  .ticket.show{opacity:1;transform:translateY(0);}
+  .ticket::after{
+    content:"";
+    position:absolute;left:0;right:0;bottom:-6px;height:6px;
+    background:repeating-linear-gradient(90deg,var(--paper) 0 6px,transparent 6px 12px);
+  }
+  .ticket .stamp{
+    position:absolute;top:10px;right:14px;
+    font-family:'Archivo',sans-serif;
+    font-weight:800;
+    font-size:14px;
+    letter-spacing:.04em;
+    color:var(--green);
+    border:2px solid var(--green);
+    border-radius:3px;
+    padding:2px 8px;
+    transform:rotate(-8deg) scale(.6);
+    opacity:0;
+    transition:opacity .25s ease .25s, transform .25s ease .25s;
+  }
+  .ticket.show .stamp{opacity:1;transform:rotate(-8deg) scale(1);}
+  .ticket-row{display:flex;justify-content:space-between;font-size:14px;padding:4px 0;border-bottom:1px dotted rgba(0,0,0,.18);}
+  .ticket-row:last-of-type{border-bottom:none;}
+  .ticket-row.total{font-weight:600;font-size:16px;margin-top:6px;padding-top:8px;border-top:1px solid rgba(0,0,0,.3);}
+  .verdict{
+    margin-top:10px;
+    font-size:13px;
+    font-weight:600;
+    padding:8px 11px;
+    border-radius:3px;
+    text-align:center;
+    letter-spacing:.02em;
+  }
+  .verdict.good{background:rgba(95,185,138,.18);color:var(--green);}
+  .verdict.mid{background:rgba(226,163,61,.18);color:var(--amber);}
+  .verdict.bad{background:rgba(209,69,59,.18);color:var(--red);}
+  .calc-note{font-size:12.5px;color:var(--ink-dim);margin-top:13px;line-height:1.6;}
+
+  /* Licencias */
+  .license-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+  .license-toolbar button{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    background:transparent;
+    border:1px solid var(--rule);
+    color:var(--ink-dim);
+    padding:7px 11px;
+    border-radius:3px;
+    cursor:pointer;
+  }
+  .license-toolbar button:hover{color:var(--ink);border-color:var(--ink-dim);}
+
+  .lic-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;}
+  .lic-summary .stat{background:var(--panel-2);border:1px solid var(--rule);border-radius:3px;padding:10px 12px;}
+  .lic-summary .stat .num{font-family:'IBM Plex Mono',monospace;font-size:17px;color:var(--amber);}
+  .lic-summary .stat .lbl{font-size:11px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.05em;}
+
+  table.lic-table{width:100%;border-collapse:collapse;font-size:13px;}
+  table.lic-table th{
+    text-align:left;color:var(--ink-dim);font-weight:500;font-size:11px;
+    text-transform:uppercase;letter-spacing:.04em;
+    border-bottom:1px solid var(--rule);padding:8px 7px;
+  }
+  table.lic-table td{padding:7px 7px;border-bottom:1px solid var(--rule);vertical-align:middle;}
+  table.lic-table tr.owned td{color:var(--green);}
+  table.lic-table tr.tutorial td{color:var(--ink-dim);font-style:italic;}
+  table.lic-table input[type=checkbox]{width:17px;height:17px;accent-color:var(--amber);cursor:pointer;}
+  table.lic-table input[type=number]{padding:5px 7px;font-size:13px;width:95px;}
+  table.lic-table .unlocks-cell{color:var(--ink-dim);font-size:12.5px;max-width:220px;}
+  .recommend{
+    margin-top:16px;font-size:13px;color:var(--ink-dim);
+    border-top:1px solid var(--rule);padding-top:14px;
+  }
+  .recommend b{color:var(--amber);}
+  .remove-row{background:none;border:none;color:var(--red);cursor:pointer;font-size:15px;padding:2px 4px;}
+
+  /* Bitácora de viajes */
+  .trip-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:18px 0;}
+  .trip-stats-grid .stat{background:var(--panel-2);border:1px solid var(--rule);border-radius:3px;padding:11px 13px;}
+  .trip-stats-grid .stat .num{font-family:'IBM Plex Mono',monospace;font-size:18px;color:var(--amber);}
+  .trip-stats-grid .stat .lbl{font-size:11px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.04em;margin-top:3px;}
+
+  .callout-grid{display:grid;grid-template-columns:1fr;gap:14px;margin:18px 0;}
+  @media (min-width:760px){ .callout-grid{grid-template-columns:1fr 1fr;} }
+  .callout{border-radius:4px;padding:15px 17px;border:1px solid var(--rule);background:var(--panel-2);}
+  .callout.best{border-color:var(--green);background:rgba(95,185,138,.07);}
+  .callout.worst{border-color:var(--red);background:rgba(209,69,59,.07);}
+  .callout h3{font-family:'Archivo',sans-serif;font-weight:800;font-size:15px;margin:0 0 10px;display:flex;align-items:center;gap:7px;}
+  .callout .trip-route{font-size:13px;color:var(--ink-dim);margin-bottom:8px;}
+  .callout-row{display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0;border-bottom:1px dotted var(--rule);color:var(--ink);}
+  .callout-row:last-child{border-bottom:none;}
+  .callout-empty{font-size:13px;color:var(--ink-dim);margin:0;}
+
+  table.trip-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  table.trip-table th{
+    text-align:left;color:var(--ink-dim);font-weight:500;font-size:11px;
+    text-transform:uppercase;letter-spacing:.04em;
+    border-bottom:1px solid var(--rule);padding:9px 7px;
+  }
+  table.trip-table td{padding:9px 7px;border-bottom:1px solid var(--rule);vertical-align:middle;}
+  .trip-route{font-size:12.5px;color:var(--ink-dim);}
+  .trip-actions{display:flex;gap:4px;white-space:nowrap;}
+  .status-pill{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:3px 9px;border-radius:10px;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;}
+  .status-pill.done{background:rgba(95,185,138,.18);color:var(--green);}
+  .status-pill.pending{background:rgba(226,163,61,.18);color:var(--amber);}
+  .form-status{font-size:13px;color:var(--amber);margin-top:6px;min-height:18px;}
+
+  footer{margin-top:26px;font-size:12.5px;color:var(--ink-dim);line-height:1.7;border-top:1px solid var(--rule);padding-top:16px;}
+  footer a{color:var(--amber);}
+  .save-indicator{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-dim);opacity:.7;}
+  /* ---- Sincronización JSONBin ---- */
+  .sync-row{margin-top:14px;padding-top:14px;border-top:1px solid var(--rule);}
+  .sync-toggle{font-family:'IBM Plex Mono',monospace;font-size:13px;background:transparent;border:none;color:var(--amber);cursor:pointer;padding:0;display:flex;align-items:center;gap:6px;}
+  .sync-toggle:hover{color:var(--ink);}
+  .sync-body{display:none;margin-top:12px;}
+  .sync-body.open{display:block;}
+  .sync-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  @media(max-width:600px){.sync-fields{grid-template-columns:1fr;}}
+  .sync-field label{display:block;font-size:12px;color:var(--ink-dim);margin-bottom:5px;}
+  .sync-field input{width:100%;background:var(--panel-2);border:1px solid var(--rule);border-radius:3px;color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:13px;padding:8px 10px;}
+  .sync-field input:focus{outline:2px solid var(--amber);outline-offset:1px;}
+  .sync-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .sync-btn{font-family:'IBM Plex Mono',monospace;font-size:12px;background:var(--amber);color:#1a1304;border:none;border-radius:3px;padding:8px 14px;cursor:pointer;font-weight:600;}
+  .sync-btn:hover{filter:brightness(1.08);}
+  .sync-btn.ghost{background:transparent;color:var(--ink-dim);border:1px solid var(--rule);}
+  .sync-btn.ghost:hover{color:var(--ink);border-color:var(--ink-dim);filter:none;}
+  .sync-status{font-family:'IBM Plex Mono',monospace;font-size:12px;padding:4px 10px;border-radius:3px;}
+  .sync-status.ok{color:var(--green);background:rgba(95,185,138,.12);}
+  .sync-status.err{color:var(--red);background:rgba(209,69,59,.12);}
+  .sync-status.loading{color:var(--amber);background:rgba(226,163,61,.12);}
+  .sync-hint{font-size:12px;color:var(--ink-dim);margin-top:8px;line-height:1.6;}
+  .sync-hint a{color:var(--amber);}
+
+  /* Autocomplete custom */
+  .autocomplete-wrap{position:relative;}
+  .autocomplete-list{
+    position:absolute;top:100%;left:0;right:0;z-index:999;
+    background:var(--panel-2);border:1px solid var(--amber-dim);border-top:none;
+    border-radius:0 0 4px 4px;max-height:220px;overflow-y:auto;
+    box-shadow:0 6px 18px rgba(0,0,0,.5);
+    display:none;
+  }
+  .autocomplete-list.open{display:block;}
+  .autocomplete-item{
+    padding:9px 12px;cursor:pointer;font-size:14px;
+    border-bottom:1px solid var(--rule);line-height:1.3;
+  }
+  .autocomplete-item:last-child{border-bottom:none;}
+  .autocomplete-item:hover, .autocomplete-item.active{background:rgba(226,163,61,.15);color:var(--amber);}
+  .autocomplete-item .ac-code{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--amber);margin-right:8px;min-width:42px;display:inline-block;}
+  .autocomplete-item .ac-sub{font-size:11.5px;color:var(--ink-dim);display:block;margin-top:2px;}
+
+  /* Valor del tren en millones */
+  .train-value-row{display:flex;gap:8px;align-items:flex-start;flex-direction:column;}
+  .train-value-row .input-group{display:flex;gap:8px;align-items:center;width:100%;}
+  .train-value-row .input-group input{flex:1;}
+  .train-value-row .input-group select{width:auto;padding:10px 8px;flex-shrink:0;}
+  .train-value-converted{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--amber);margin-top:4px;min-height:16px;}
+
+  /* Neto coloreado */
+  .net-display{
+    margin-top:8px;padding:8px 12px;border-radius:3px;
+    font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;
+    display:none;
+  }
+  .net-display.positive{background:rgba(95,185,138,.15);color:var(--green);border:1px solid rgba(95,185,138,.3);}
+  .net-display.negative{background:rgba(209,69,59,.15);color:var(--red);border:1px solid rgba(209,69,59,.3);}
+  /* ---- Cazador de Demonstrators ---- */
+  .museum-stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 0 16px;}
+  .museum-legend{display:flex;gap:20px;font-size:13px;color:var(--ink-dim);margin-bottom:18px;flex-wrap:wrap;align-items:center;}
+  .museum-legend span{display:flex;align-items:center;gap:5px;}
+  .museum-reset-btn{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:12px;background:transparent;border:1px solid var(--rule);color:var(--ink-dim);padding:5px 10px;border-radius:3px;cursor:pointer;}
+  .museum-reset-btn:hover{color:var(--red);border-color:var(--red);}
+  .museum-station{margin-bottom:14px;border:1px solid var(--rule);border-radius:4px;overflow:hidden;}
+  .museum-station-header{display:flex;align-items:center;gap:10px;padding:9px 14px;background:var(--panel-2);flex-wrap:wrap;}
+  .museum-station-code{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--amber);font-weight:600;min-width:44px;}
+  .museum-station-name{font-size:14px;color:var(--ink);flex:1;}
+  .museum-station-progress{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-dim);}
+  .museum-station-badge{font-size:11px;padding:2px 9px;border-radius:10px;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+  .museum-station-badge.found{background:rgba(95,185,138,.2);color:var(--green);}
+  .museum-station-badge.done{background:rgba(226,163,61,.18);color:var(--amber);}
+  .museum-point{display:flex;align-items:center;gap:10px;padding:8px 14px;border-top:1px solid var(--rule);transition:background .12s;}
+  .museum-point:hover{background:rgba(255,255,255,.025);}
+  .museum-point.state-empty{opacity:.5;}
+  .museum-point.state-found{background:rgba(95,185,138,.07);}
+  .museum-status-btn{background:var(--panel-2);border:1px solid var(--rule);border-radius:3px;cursor:pointer;font-size:14px;padding:3px 8px;flex-shrink:0;line-height:1;transition:border-color .12s,background .12s;}
+  .museum-status-btn:hover{border-color:var(--amber);background:rgba(226,163,61,.1);}
+  .museum-point-desc{font-size:13.5px;color:var(--ink);flex:1;line-height:1.4;}
+  .museum-point.state-empty .museum-point-desc{text-decoration:line-through;color:var(--ink-dim);}
+  .museum-loco-sel{font-family:'IBM Plex Mono',monospace;font-size:13px;padding:5px 8px;width:auto;flex-shrink:0;background:var(--panel-2);border:1px solid var(--amber-dim);border-radius:3px;color:var(--ink);}
+  .museum-loco-sel:focus{outline:2px solid var(--amber);outline-offset:1px;}
+  .museum-found-summary{margin:18px 0 0;padding:14px 16px;background:var(--panel-2);border:1px solid var(--rule);border-radius:4px;}
+  .museum-found-summary h4{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--amber);margin:0 0 10px;}
+  .museum-found-row{display:flex;justify-content:space-between;font-size:13.5px;padding:5px 0;border-bottom:1px dotted var(--rule);}
+  .museum-found-row:last-child{border-bottom:none;}
+  .museum-found-row .mfr-loco{font-family:'IBM Plex Mono',monospace;color:var(--green);font-weight:600;}
+  .museum-found-row .mfr-loc{color:var(--ink-dim);font-size:12.5px;}
+
+  /* Modal de información de viaje */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;
+    display:none;align-items:flex-start;justify-content:center;
+    padding:40px 20px;overflow-y:auto;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-box{
+    background:var(--panel);border:1px solid var(--amber-dim);border-radius:6px;
+    max-width:640px;width:100%;padding:26px 28px 22px;position:relative;
+    box-shadow:0 12px 40px rgba(0,0,0,.5);
+  }
+  .modal-close{
+    position:absolute;top:14px;right:14px;background:transparent;
+    border:1px solid var(--rule);color:var(--ink-dim);width:32px;height:32px;
+    border-radius:4px;cursor:pointer;font-size:16px;line-height:1;
+  }
+  .modal-close:hover{color:var(--ink);border-color:var(--ink-dim);}
+  .modal-title{font-family:'Archivo',sans-serif;font-weight:800;font-size:21px;margin:0 6px 4px 0;color:var(--ink);}
+  .modal-subtitle{font-size:13px;color:var(--ink-dim);margin:0 0 18px;}
+  .info-section{margin-bottom:16px;}
+  .info-section h4{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--amber);margin:0 0 8px;
+    border-bottom:1px dashed var(--rule);padding-bottom:6px;
+  }
+  .info-row{display:flex;justify-content:space-between;gap:14px;font-size:13.5px;padding:5px 0;border-bottom:1px dotted var(--rule);}
+  .info-row:last-child{border-bottom:none;}
+  .info-row .info-label{color:var(--ink-dim);}
+  .info-row .info-value{color:var(--ink);text-align:right;font-family:'IBM Plex Mono',monospace;}
+  .info-notes{font-size:13.5px;color:var(--ink);background:var(--panel-2);border-radius:3px;padding:10px 12px;margin-top:6px;white-space:pre-wrap;font-family:'IBM Plex Sans',sans-serif;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="manifest">
+    <p class="eyebrow">Manifiesto de carrera · Valle del Descarrilamiento</p>
+    <h1>Teb's Derail Valley Tool <span class="version-badge">v1.8.0</span></h1>
+    <p class="sub">Tres herramientas en una: evalúa si un trabajo vale la pena antes de aceptarlo, lleva el registro de qué licencias comprar y en qué orden, y guarda cada viaje real que hagas para ver tus promedios y tu mejor viaje. No reemplaza el mapa ni los mods de ruta — para eso ya existen herramientas mejores que cualquier cosa que pudiera improvisar aquí.</p>
+    <div class="reflinks">
+      <a href="https://pyronicampt.github.io/DV-Community-Map/" target="_blank" rel="noopener">Mapa interactivo de la comunidad (DV Community Map) ↗</a>
+      <a href="https://derailvalley.wiki.gg/wiki/License" target="_blank" rel="noopener">Tabla de licencias en la wiki ↗</a>
+    </div>
+    <div class="backup-row">
+      <button class="backup-btn" id="exportBackup">⭳ Exportar copia de seguridad (JSON)</button>
+      <label class="backup-btn" for="importBackupFile" style="margin:0;">⭱ Importar copia de seguridad
+        <input type="file" id="importBackupFile" accept="application/json" style="display:none;">
+      </label>
+      <span class="save-indicator" id="saveIndicator"></span>
+    </div>
+
+    <div class="sync-row">
+      <button class="sync-toggle" id="syncToggle">☁ Sincronización en la nube <span id="syncToggleArrow">▾</span></button>
+      <div class="sync-body" id="syncBody">
+        <div class="sync-fields">
+          <div class="sync-field">
+            <label>API Key de JSONBin</label>
+            <input type="password" id="syncApiKey" placeholder="$2a$10$...">
+          </div>
+          <div class="sync-field">
+            <label>Bin ID</label>
+            <input type="text" id="syncBinId" placeholder="64ab12...">
+          </div>
+        </div>
+        <div class="sync-actions">
+          <button class="sync-btn" id="syncConnectBtn">Conectar y sincronizar</button>
+          <button class="sync-btn ghost" id="syncCreateBtn">Crear bin nuevo</button>
+          <button class="sync-btn ghost" id="syncPushBtn" title="Forzar subida de datos locales a la nube">⭱ Subir ahora</button>
+          <button class="sync-btn ghost" id="syncPullBtn" title="Forzar bajada de datos de la nube">⭳ Bajar ahora</button>
+          <span class="sync-status" id="syncStatus" style="display:none;"></span>
+        </div>
+        <p class="sync-hint">
+          Crea tu cuenta gratis en <a href="https://jsonbin.io" target="_blank" rel="noopener">jsonbin.io</a> → crea un bin → copia el API Key y el Bin ID aquí.<br>
+          Una vez conectado, la app sincroniza automáticamente en cada guardado. Tus datos solo son accesibles con tu API Key.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <div class="tabs-nav">
+    <button class="tab-btn active" data-tab="evaluador">Evaluador de trabajo</button>
+    <button class="tab-btn" data-tab="licencias">Libro de licencias</button>
+    <button class="tab-btn" data-tab="bitacora">Bitácora de viajes</button>
+    <button class="tab-btn" data-tab="items">Base de Ítems</button>
+    <button class="tab-btn" data-tab="museum">Cazador de Demonstrators</button>
+  </div>
+
+  <!-- EVALUADOR DE TRABAJOS -->
+  <div class="tab-panel active" data-panel="evaluador">
+    <section class="card" id="evaluador">
+      <h2>Evaluador de trabajo <span class="tag">úsalo cada vez</span></h2>
+      <p class="card-desc">Solo los datos que afectan el cálculo. Los datos del papel (código, origen, destino, peso, etc.) los metes directamente en la Bitácora cuando vayas a registrar el viaje.</p>
+
+      <div class="field-row single">
+        <div class="field-highlight">
+          <label>Pago base (el monto grande del papel, antes del bono)</label>
+          <input type="number" id="basePayment" min="0" step="1" placeholder="Ej: 20492">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div>
+          <label>Tiempo estimado del viaje (min)</label>
+          <input type="number" id="tripTime" min="0" step="1" placeholder="Ej: 35">
+        </div>
+        <div>
+          <label>Distancia estimada (km) <span class="hint">opcional, según el mapa</span></label>
+          <input type="number" id="distanceKm" min="0" step="0.1" placeholder="Ej: 14.5">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div>
+          <label>% de bono si lo logras <span class="hint">opcional — déjalo vacío si no lo sabes</span></label>
+          <input type="number" id="bonusPct" min="0" step="1" placeholder="Ej: 50">
+        </div>
+        <div>
+          <label>Costos adicionales estimados ($)
+            <span class="hint">combustible, copago, daños esperados</span>
+          </label>
+          <input type="number" id="feesFlat" min="0" step="1" value="0">
+        </div>
+      </div>
+
+      <div class="field-row single">
+        <div>
+          <label>Tu meta de $/hora <span class="hint">opcional — para comparar el veredicto contra algo tuyo</span></label>
+          <input type="number" id="targetRate" min="0" step="1" placeholder="Ej: 8000">
+        </div>
+      </div>
+
+      <div class="validator-slot">
+        <p>Inserta los datos en el validador para calcular.</p>
+        <button class="validate-btn" id="calcBtn">Insertar en validador</button>
+      </div>
+
+      <div class="ticket-area">
+        <div class="ticket" id="ticket">
+          <span class="stamp">✓ Validado</span>
+          <div class="ticket-row"><span>Pago base (del papel)</span><span id="r-gross">—</span></div>
+          <div class="ticket-row"><span>Con bono de tiempo (si lo logras)</span><span id="r-bonus">—</span></div>
+          <div class="ticket-row"><span>Costos estimados</span><span id="r-fees">—</span></div>
+          <div class="ticket-row total"><span>Pago neto estimado</span><span id="r-net">—</span></div>
+          <div class="ticket-row"><span>$ / hora</span><span id="r-hour">—</span></div>
+          <div class="ticket-row"><span>$ / km</span><span id="r-km">—</span></div>
+          <div class="verdict" id="verdict" style="display:none;"></div>
+        </div>
+      </div>
+      <p class="calc-note">El pago base viene impreso en el papel del pedido. El bono de tiempo se aplica solo si metes el %, porque varía según la dificultad de tu partida — no hay una cifra fija.</p>
+    </section>
+  </div>
+
+  <!-- LIBRO DE LICENCIAS -->
+  <div class="tab-panel" data-panel="licencias">
+    <section class="card" id="licencias">
+      <h2>Libro de licencias <span class="tag">decisión a largo plazo</span></h2>
+      <p class="card-desc">Datos de costo y copago tomados de la wiki comunitaria de Derail Valley (tabla histórica, hasta ~Build 87). La wiki de Fandom menciona que ya hay 25 licencias en builds recientes, así que a esta lista probablemente le faltan algunas nuevas de Build 99 — agrégalas a mano si las tienes y ajusta los costos si el juego te muestra otra cifra. Esto es un punto de partida, no la fuente de verdad.</p>
+
+      <div class="lic-summary">
+        <div class="stat"><div class="num" id="sum-invested">$0</div><div class="lbl">Invertido</div></div>
+        <div class="stat"><div class="num" id="sum-copay">$0</div><div class="lbl">Copago acumulado</div></div>
+        <div class="stat"><div class="num" id="sum-owned">0/0</div><div class="lbl">Licencias en mano</div></div>
+      </div>
+
+      <div class="license-toolbar">
+        <button id="resetCosts">Restaurar costos de wiki</button>
+        <button id="addCustom">+ Agregar licencia personalizada</button>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="lic-table">
+          <thead>
+            <tr>
+              <th>Tengo</th><th>Licencia</th><th>Costo</th><th>Copago +</th><th>Desbloquea</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="lic-body"></tbody>
+        </table>
+      </div>
+
+      <div class="recommend" id="recommend">Marca tus licencias actuales para ver una sugerencia de cuál te conviene comprar primero.</div>
+    </section>
+  </div>
+
+  <!-- BITÁCORA DE VIAJES -->
+  <div class="tab-panel" data-panel="bitacora">
+    <section class="card" id="bitacora">
+      <h2>Bitácora de viajes <span class="tag">tu historial real</span></h2>
+      <p class="card-desc">Registra cada viaje de verdad: lo que decía el papel y lo que pasó al final. Con eso se arman tus promedios y se ve cuál fue tu mejor (y peor) viaje. Puedes guardar un viaje con solo los datos del papel y volver después a completar la parte real cuando termines — no hace falta llenarlo todo de una vez.</p>
+
+      <p class="subhead" id="bitacora-form-anchor">Datos del pedido — como en el papel</p>
+
+      <div class="field-row">
+        <div>
+          <label>Código de pedido</label>
+          <input type="text" id="t-jobCode" placeholder="Ej: CME-LH-57">
+        </div>
+        <div>
+          <label>Tipo de pedido</label>
+          <select id="t-jobType">
+            <option value="">— Selecciona —</option>
+            <option value="maniobras">Maniobras (Shunting)</option>
+            <option value="flete">Flete (Freight Haul)</option>
+            <option value="flete-logistico">Flete Logístico (Logistic Haul)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div>
+          <label>Origen</label>
+          <div class="autocomplete-wrap">
+            <input type="text" id="t-origin" placeholder="Código o nombre, ej: HB o Puerto" autocomplete="off">
+            <div class="autocomplete-list" id="t-origin-list"></div>
+          </div>
+        </div>
+        <div>
+          <label>Destino</label>
+          <div class="autocomplete-wrap">
+            <input type="text" id="t-destination" placeholder="Código o nombre, ej: CME o Mina Carbón Este" autocomplete="off">
+            <div class="autocomplete-list" id="t-destination-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div>
+          <label>Cantidad de vagones</label>
+          <input type="number" id="t-carCount" min="1" step="1" value="1">
+        </div>
+        <div>
+          <label>Plazo de bono de tiempo (min)</label>
+          <input type="number" id="t-bonusDeadlineMin" min="0" step="1" placeholder="Ej: 56">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div>
+          <label>Peso del tren (t)</label>
+          <input type="number" id="t-trainWeight" min="0" step="0.01" placeholder="Ej: 260.00">
+        </div>
+        <div>
+          <label>Largo del tren (m)</label>
+          <input type="number" id="t-trainLength" min="0" step="0.01" placeholder="Ej: 183.55">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div>
+          <label>Valor del tren</label>
+          <div class="train-value-row">
+            <div class="input-group">
+              <input type="number" id="t-trainValue" min="0" step="0.001" placeholder="Ej: 0.26">
+              <select id="t-trainValueUnit">
+                <option value="m">millones ($m)</option>
+                <option value="k">miles ($k)</option>
+                <option value="1">dólares ($)</option>
+              </select>
+            </div>
+            <div class="train-value-converted" id="t-trainValueConverted"></div>
+          </div>
+        </div>
+        <div>
+          <label>Licencias requeridas</label>
+          <input type="text" id="t-requiredLicenses" placeholder="Ej: Flete Logístico, Largo II">
+        </div>
+      </div>
+
+      <div class="field-row single">
+        <div class="field-highlight">
+          <label>Pago base planeado (el del papel, antes del bono)</label>
+          <input type="number" id="t-basePayment" min="0" step="1" placeholder="Ej: 20492">
+        </div>
+      </div>
+
+      <p class="subhead">Datos reales del viaje — esto lo llenas cuando termines</p>
+
+      <div class="field-row">
+        <div>
+          <label>Locomotora usada</label>
+          <div class="autocomplete-wrap">
+            <input type="text" id="t-locomotive" placeholder="Ej: DE6 o diesel" autocomplete="off">
+            <div class="autocomplete-list" id="loco-list"></div>
+          </div>
+        </div>
+        <div>
+          <label>Distancia recorrida (km) <span class="hint">opcional</span></label>
+          <input type="number" id="t-distanceKm" min="0" step="0.1" placeholder="Ej: 14.5">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div>
+          <label>Tiempo transcurrido (min)
+            <span class="hint">el que aparece en el informe final del pedido</span>
+          </label>
+          <input type="number" id="t-tripDuration" min="0" step="1" placeholder="Ej: 42">
+        </div>
+        <div></div>
+      </div>
+
+      <div class="field-row">
+        <div>
+          <label>Pago de mantenimiento total ($)
+            <span class="hint">combustible + reparaciones + aceite + todo, en un solo número</span>
+          </label>
+          <input type="number" id="t-maintenanceCost" min="0" step="1" placeholder="Ej: 3200">
+        </div>
+        <div>
+          <label>Pago real recibido ($)
+            <span class="hint">lo que pagó el validador al completar</span>
+          </label>
+          <input type="number" id="t-realPayment" min="0" step="1" placeholder="Ej: 28500">
+        </div>
+      </div>
+      <div class="net-display" id="netDisplay"></div>
+
+      <div class="field-row">
+        <div>
+          <label>¿Conseguiste el bono de tiempo?</label>
+          <select id="t-bonusAchieved">
+            <option value="">— Selecciona —</option>
+            <option value="si">Sí, lo conseguí</option>
+            <option value="no">No, no llegué a tiempo</option>
+            <option value="na">No aplica / no lo seguí</option>
+          </select>
+        </div>
+        <div>
+          <label>¿Hubo algún incidente?</label>
+          <select id="t-incident">
+            <option value="">— Selecciona —</option>
+            <option value="no">No, todo limpio</option>
+            <option value="descarrilamiento">Descarrilamiento</option>
+            <option value="colision">Colisión con otro vehículo</option>
+            <option value="frenos">Fallo de frenos / tren sin control</option>
+            <option value="dano-carga">Daño a la carga</option>
+            <option value="dano-loco">Daño a la locomotora</option>
+            <option value="dano-vagon">Daño a vagones</option>
+            <option value="dano-ambiente">Daño ambiental (derrame)</option>
+            <option value="hazmat">Incidente hazmat / explosión</option>
+            <option value="rueda">Patinaje de ruedas severo</option>
+            <option value="via-equivocada">Tomé la vía equivocada</option>
+            <option value="cambio-mal">Cambiavía mal puesto</option>
+            <option value="enganche">Problema de enganche / acoplado</option>
+            <option value="combustible">Se quedó sin combustible/agua/carbón</option>
+            <option value="motor">Fallo del motor / transmisión</option>
+            <option value="multiple">Múltiples incidentes</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-row single">
+        <div>
+          <label>Notas <span class="hint">lo que se te ocurra: descarrilamientos, condiciones del clima, si te tocó reversar, etc.</span></label>
+          <textarea id="t-notes" placeholder="Ej: lluvia toda la ruta, casi me paso un cambiavía en CSW"></textarea>
+        </div>
+      </div>
+
+      <div class="validator-slot">
+        <div>
+          <p id="trip-form-status" class="form-status" style="margin:0;"></p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="validate-btn ghost" id="cancelEditTrip" style="display:none;">Cancelar edición</button>
+          <button class="validate-btn" id="saveTrip">Guardar viaje</button>
+        </div>
+      </div>
+
+      <p class="subhead">Tus estadísticas</p>
+      <div class="trip-stats-grid">
+        <div class="stat"><div class="num" id="stat-total-trips">0</div><div class="lbl">Viajes registrados</div></div>
+        <div class="stat"><div class="num" id="stat-total-hours">0h</div><div class="lbl">Horas jugadas</div></div>
+        <div class="stat"><div class="num" id="stat-total-net">$0</div><div class="lbl">Pago neto acumulado</div></div>
+        <div class="stat"><div class="num" id="stat-avg-hour">—</div><div class="lbl">$/hora promedio</div></div>
+        <div class="stat"><div class="num" id="stat-avg-km">—</div><div class="lbl">$/km promedio</div></div>
+        <div class="stat"><div class="num" id="stat-bonus-rate">—</div><div class="lbl">% bono logrado</div></div>
+        <div class="stat"><div class="num" id="stat-total-cars">0</div><div class="lbl">Vagones movidos</div></div>
+      </div>
+
+      <div class="callout-grid">
+        <div class="callout best">
+          <h3>🏆 Mejor viaje</h3>
+          <div id="best-trip"><p class="callout-empty">Aún no hay viajes completados.</p></div>
+        </div>
+        <div class="callout worst">
+          <h3>⚠️ Peor viaje</h3>
+          <div id="worst-trip"><p class="callout-empty">Aún no hay suficientes datos.</p></div>
+        </div>
+      </div>
+
+      <p class="subhead">Historial</p>
+      <div style="overflow-x:auto;">
+        <table class="trip-table">
+          <thead>
+            <tr>
+              <th>Duración</th><th>Pedido</th><th>Tipo</th><th>Estado</th><th>$/hora real</th><th>Bono</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="trip-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- BASE DE ÍTEMS (integrada de derail_valley_items.html, sin modificar su contenido) -->
+  <div class="tab-panel" data-panel="items">
+    <section class="card" id="items-tab-card" style="padding:0;overflow:hidden;">
+      <div style="padding:22px 24px 16px;">
+        <h2>Base de Ítems <span class="tag">consulta rápida</span></h2>
+        <p class="card-desc">El mismo catálogo de ítems y tiendas que ya tenías por separado, ahora aquí mismo. Corre en su propio panel aislado (un iframe) para no pisar los estilos ni el código del resto de la herramienta — toda su información e interfaz están intactas, tal cual las hiciste.</p>
+      </div>
+      <iframe id="items-frame" title="Derail Valley — Base de Datos de Ítems" srcdoc="<!DOCTYPE html>
+<html lang=&quot;es&quot;>
+<head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<title>Derail Valley — Base de Datos de Ítems</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&amp;family=Barlow+Condensed:wght@400;600;700;900&amp;family=Barlow:wght@400;500&amp;display=swap');
+
+  :root {
+    --bg:        #0e0f0e;
+    --surface:   #161815;
+    --panel:     #1e201c;
+    --border:    #2e3028;
+    --accent:    #e8b84b;
+    --accent2:   #c0392b;
+    --text:      #d4d8cc;
+    --muted:     #7a8070;
+    --mono:      'Share Tech Mono', monospace;
+    --head:      'Barlow Condensed', sans-serif;
+    --body:      'Barlow', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    min-height: 100vh;
+    font-size: 15px;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    background: var(--surface);
+    border-bottom: 3px solid var(--accent);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo-mark {
+    font-family: var(--mono);
+    font-size: 28px;
+    color: var(--accent);
+    letter-spacing: -2px;
+    line-height: 1;
+    padding: 6px 10px;
+    border: 2px solid var(--accent);
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .logo-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+  .logo-text .title {
+    font-family: var(--head);
+    font-weight: 900;
+    font-size: 20px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #fff;
+  }
+  .logo-text .subtitle {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .header-right {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.6;
+  }
+  .header-right span {
+    color: var(--accent);
+  }
+
+  /* ─── LAYOUT ─── */
+  .app {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    grid-template-rows: auto 1fr;
+    min-height: calc(100vh - 64px);
+  }
+
+  /* ─── SIDEBAR ─── */
+  aside {
+    grid-row: 1 / 3;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px 0;
+    position: sticky;
+    top: 64px;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+  }
+  .sidebar-section {
+    padding: 0 16px;
+    margin-bottom: 8px;
+  }
+  .sidebar-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 12px 16px 6px;
+    display: block;
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+  }
+  .sidebar-label:first-child { border-top: none; margin-top: 0; }
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 16px;
+    background: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--muted);
+    font-family: var(--body);
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+    transition: all 0.12s;
+  }
+  .nav-btn:hover { background: var(--panel); color: var(--text); }
+  .nav-btn.active { background: rgba(232,184,75,0.12); color: var(--accent); }
+  .nav-btn .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+  .nav-btn.active .dot { background: var(--accent); }
+  .nav-btn .count {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ─── SEARCH BAR ─── */
+  .search-wrap {
+    padding: 16px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 64px;
+    z-index: 50;
+  }
+  .search-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    transition: border-color 0.15s;
+  }
+  .search-inner:focus-within { border-color: var(--accent); }
+  .search-inner svg { color: var(--muted); flex-shrink: 0; }
+  #searchInput {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 15px;
+    width: 100%;
+  }
+  #searchInput::placeholder { color: var(--muted); }
+  #clearBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 2px;
+    display: none;
+    border-radius: 3px;
+  }
+  #clearBtn:hover { color: var(--text); }
+
+  /* ─── MAIN CONTENT ─── */
+  main {
+    padding: 24px;
+    overflow-y: auto;
+  }
+
+  /* ─── VIEW HEADER ─── */
+  .view-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .view-title {
+    font-family: var(--head);
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #fff;
+  }
+  .view-count {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  /* ─── ITEM GRID ─── */
+  .items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+  }
+
+  /* ─── ITEM CARD ─── */
+  .item-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    transition: border-color 0.15s, transform 0.1s;
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+  }
+  .item-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .item-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: transparent;
+    transition: background 0.15s;
+  }
+  .item-card:hover::before { background: var(--accent); }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .cat-icon {
+    width: 36px; height: 36px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+  .card-name {
+    font-family: var(--head);
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 0.5px;
+    color: #fff;
+    line-height: 1.2;
+  }
+  .card-variant {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .card-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    background: var(--surface);
+  }
+  .tag.price {
+    color: var(--accent);
+    border-color: rgba(232,184,75,0.3);
+    background: rgba(232,184,75,0.06);
+  }
+  .tag.location {
+    color: #7ec8e3;
+    border-color: rgba(126,200,227,0.25);
+    background: rgba(126,200,227,0.05);
+    display: flex; align-items: center; gap: 4px;
+  }
+  .tag.location::before {
+    content: '📍';
+    font-size: 10px;
+  }
+  .tag.cat {
+    color: #a0c878;
+    border-color: rgba(160,200,120,0.25);
+    background: rgba(160,200,120,0.05);
+  }
+
+  /* ─── CITY VIEW ─── */
+  .city-section { margin-bottom: 32px; }
+  .city-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .city-icon {
+    font-size: 22px;
+  }
+  .city-name {
+    font-family: var(--head);
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #fff;
+  }
+  .city-abbr {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    background: rgba(232,184,75,0.1);
+    border: 1px solid rgba(232,184,75,0.3);
+    border-radius: 3px;
+    padding: 2px 7px;
+  }
+  .city-count {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .city-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+  }
+
+  /* ─── CATEGORY VIEW ─── */
+  .cat-section { margin-bottom: 32px; }
+  .cat-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 14px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .cat-title {
+    font-family: var(--head);
+    font-weight: 900; font-size: 20px;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: #fff;
+  }
+  .cat-count { margin-left: auto; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+  /* ─── EMPTY STATE ─── */
+  .empty {
+    grid-column: 1 / -1;
+    padding: 60px 24px;
+    text-align: center;
+    color: var(--muted);
+  }
+  .empty .e-icon { font-size: 48px; margin-bottom: 16px; }
+  .empty .e-msg { font-family: var(--head); font-size: 20px; color: var(--text); margin-bottom: 6px; }
+  .empty .e-sub { font-size: 13px; }
+
+  /* ─── SEARCH HIGHLIGHT ─── */
+  mark { background: rgba(232,184,75,0.3); color: var(--accent); border-radius: 2px; padding: 0 1px; }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  /* ─── CATEGORY COLORS ─── */
+  .icon-herramienta { background: rgba(232,184,75,0.1); }
+  .icon-gadget-eq   { background: rgba(160,200,120,0.1); }
+  .icon-gadget-sis  { background: rgba(126,200,227,0.1); }
+  .icon-gadget-cos  { background: rgba(200,140,120,0.1); }
+  .icon-soporte     { background: rgba(180,130,220,0.1); }
+  .icon-llave       { background: rgba(220,180,80,0.1); }
+  .icon-cassette    { background: rgba(200,120,160,0.1); }
+  .icon-misc        { background: rgba(140,160,140,0.1); }
+  .icon-pintura     { background: rgba(200,100,100,0.1); }
+
+  /* ─── A-Z ALPHA HEADER ─── */
+  .alpha-group { margin-bottom: 28px; }
+  .alpha-char {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class=&quot;logo-mark&quot;>DV</div>
+  <div class=&quot;logo-text&quot;>
+    <span class=&quot;title&quot;>Derail Valley</span>
+    <span class=&quot;subtitle&quot;>Items &amp;amp; Tiendas — B99</span>
+  </div>
+  <div class=&quot;header-right&quot;>
+    Fuente: <span>Wiki Oficial + Fandom</span><br>
+    Versión <span>Build 99</span>
+  </div>
+</header>
+
+<div class=&quot;app&quot;>
+  <aside id=&quot;sidebar&quot;></aside>
+
+  <div style=&quot;display:flex;flex-direction:column;&quot;>
+    <div class=&quot;search-wrap&quot;>
+      <div class=&quot;search-inner&quot;>
+        <svg width=&quot;16&quot; height=&quot;16&quot; fill=&quot;none&quot; viewBox=&quot;0 0 24 24&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;>
+          <circle cx=&quot;11&quot; cy=&quot;11&quot; r=&quot;8&quot;/><path d=&quot;M21 21l-4.35-4.35&quot;/>
+        </svg>
+        <input type=&quot;text&quot; id=&quot;searchInput&quot; placeholder=&quot;Buscar ítem... (ej: soldador, llave, linterna)&quot;>
+        <button id=&quot;clearBtn&quot; onclick=&quot;clearSearch()&quot; title=&quot;Limpiar&quot;>✕</button>
+      </div>
+    </div>
+    <main id=&quot;mainContent&quot;></main>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// BASE DE DATOS
+// ═══════════════════════════════════════════════════════
+
+const LOCATIONS = {
+  ALL:  { name: 'Todas las tiendas', abbr: 'ALL', icon: '🏪' },
+  CW:   { name: 'City West (City SW)', abbr: 'CW', icon: '🏙️' },
+  FF:   { name: 'Food Factory &amp; Town', abbr: 'FF', icon: '🏭' },
+  GF:   { name: 'Goods Factory &amp; Town', abbr: 'GF', icon: '⚙️' },
+  HB:   { name: 'Harbor &amp; Town', abbr: 'HB', icon: '⚓' },
+  MF:   { name: 'Machine Factory &amp; Town', abbr: 'MF', icon: '🔧' },
+};
+
+const CATEGORIES = {
+  herramienta: { label: 'Herramientas manuales', icon: '🔨' },
+  gadget_eq:   { label: 'Gadgets de equipo', icon: '🔌' },
+  gadget_sis:  { label: 'Gadgets de sistema', icon: '💡' },
+  gadget_cos:  { label: 'Gadgets cosméticos', icon: '🎨' },
+  soporte:     { label: 'Soportes / Montajes', icon: '📐' },
+  llave:       { label: 'Llaves de garaje', icon: '🗝️' },
+  cassette:    { label: 'Casetes', icon: '📼' },
+  misc:        { label: 'Misceláneos', icon: '📦' },
+  pintura:     { label: 'Pintura', icon: '🪣' },
+};
+
+// locations: array de códigos de LOCATIONS
+// tags: palabras clave adicionales para búsqueda inteligente
+const ITEMS = [
+  // ─── HERRAMIENTAS ───
+  { id:1,  name:'Pala (Shovel)',            cat:'herramienta', variant:'Estándar',   price:250,    locations:['ALL'], desc:'Sirve para palear carbón en las locomotoras a vapor. Esencial si operas steam.', tags:['cargar carbon','combustible','steam'] },
+  { id:2,  name:'Pala Experta',             cat:'herramienta', variant:'Expert Shovel', price:2500, locations:['GF'], desc:'Palada más pequeña por movimiento, útil para ajuste fino de carbón sin desperdicio.', tags:['carbon','palada pequeña','ajustar'] },
+  { id:3,  name:'Pala Dorada',              cat:'herramienta', variant:'Golden Shovel', price:7000, locations:['GF'], desc:'Palada mayor en cada movimiento. Más eficiente para cargar rápido, con estilo.', tags:['golden','carbon','rapido','eficiente'] },
+  { id:4,  name:'Encendedor (Lighter)',     cat:'herramienta', variant:null,         price:150,    locations:['ALL'], desc:'Enciende el fuego en la caldera de locomotoras a vapor. Primer ítem que necesitas para steam.', tags:['fuego','fogon','caldera','ignicion','encender'] },
+  { id:5,  name:'Linterna (Flashlight)',    cat:'herramienta', variant:null,         price:5000,   locations:['ALL'], desc:'Iluminación manual portátil. Útil en túneles, estaciones oscuras y trabajo nocturno.', tags:['luz','iluminar','noche','tunel','torch','lampara'] },
+  { id:6,  name:'Aceitera (Oiler)',         cat:'herramienta', variant:null,         price:400,    locations:['ALL'], desc:'Aplica aceite en los mecanismos de la locomotora. Requerida en algunas locos para mantenimiento.', tags:['aceite','lubricar','oil','mantenimiento'] },
+  { id:7,  name:'Martillo (Hammer)',        cat:'herramienta', variant:null,         price:300,    locations:['ALL'], desc:'Fija o instala gadgets y soportes en la cabina o carrocería de la locomotora.', tags:['clavar','instalar','montar'] },
+  { id:8,  name:'Mando de Locomotora',      cat:'herramienta', variant:'Remote',     price:35000,  locations:['MF'], desc:'Controla locomotoras compatibles de forma inalámbrica desde el exterior.', tags:['control remoto','wireless','manejar','remote control','conducir','mandar'] },
+  { id:9,  name:'Reloj de Bolsillo',        cat:'herramienta', variant:'Pocketwatch', price:3000,  locations:['HB'], desc:'Muestra la hora exacta en el juego. Accesorio útil para gestión de tiempo y horarios.', tags:['hora','tiempo','reloj','watch','horario'] },
+  { id:10, name:'Pistola de Soldar',        cat:'herramienta', variant:'Soldering Gun', price:5000,locations:['GF'], desc:'Suelda componentes eléctricos en la locomotora. Se usa junto con el carrete de hilo.', tags:['soldar','soldador','electrico','conectar','soldadura','reparar'] },
+  { id:11, name:'Carrete de Hilo Soldador', cat:'herramienta', variant:'Wire Reel',  price:200,    locations:['ALL'], desc:'Consumible necesario para el uso de la pistola de soldar. Se agota con el uso.', tags:['hilo','cable','soldadura','consumible','repuesto'] },
+  { id:12, name:'Herramienta de Crimpar',   cat:'herramienta', variant:'Crimping Tool', price:3000,locations:['GF'], desc:'Permite conectar terminales de cable. Complementa los trabajos de instalación eléctrica.', tags:['crimpar','cable','conector','electrico','pinzas'] },
+  { id:13, name:'Taladro Eléctrico',        cat:'herramienta', variant:'Electric Drill', price:9000,locations:['GF'], desc:'Instala y retira soportes y gadgets con mayor rapidez que el martillo.', tags:['taladro','drill','perforar','instalar','atornillar'] },
+  { id:14, name:'Pistola de Relleno',       cat:'herramienta', variant:'Filler Gun',  price:600,   locations:['GF'], desc:'Aplica material de relleno para reparación de superficies en el material rodante.', tags:['reparar','rellenar','parchar','superficie','pintura'] },
+
+  // ─── GADGETS DE EQUIPO ───
+  { id:20, name:'Cinta Adhesiva (Duct Tape)',cat:'gadget_eq',  variant:null,         price:200,    locations:['ALL'], desc:'Fija provisionalmente gadgets ligeros a superficies. No requiere soporte.', tags:['pegar','fijar','cinta','tape','provisional'] },
+  { id:21, name:'Cinta Transparente',        cat:'gadget_eq',  variant:'Sticky Tape', price:400,   locations:['ALL'], desc:'Variante de la cinta adhesiva para superficies más delicadas o visibles.', tags:['pegar','fijar','cinta','transparente','scotch'] },
+  { id:22, name:'Gancho (Hanger)',            cat:'gadget_eq', variant:null,          price:400,   locations:['ALL'], desc:'Cuelga objetos como linternas o cascos dentro de la cabina.', tags:['colgar','gancho','cabina','organizar'] },
+  { id:23, name:'Luz Giratoria (Swivel Light)',cat:'gadget_eq',variant:null,          price:5000,  locations:['ALL'], desc:'Luz articulada que puede dirigirse en múltiples direcciones. Se monta en la loco.', tags:['luz','iluminar','orientable','giro','lamp'] },
+  { id:24, name:'Barra de Luz Azul',          cat:'gadget_eq', variant:'Blue',        price:3000,  locations:['GF'],  desc:'Barra LED azul para iluminación o señalización decorativa en locomotoras.', tags:['luz','led','azul','barra','decoracion'] },
+  { id:25, name:'Barra de Luz Blanca',        cat:'gadget_eq', variant:'White',       price:3000,  locations:['GF'],  desc:'Barra LED blanca para iluminación funcional.', tags:['luz','led','blanca','barra'] },
+  { id:26, name:'Barra de Luz Cian',          cat:'gadget_eq', variant:'Cyan',        price:3000,  locations:['HB'],  desc:'Barra LED en tono cian para señalización o decoración.', tags:['luz','led','cian','barra'] },
+  { id:27, name:'Barra de Luz Verde',         cat:'gadget_eq', variant:'Green',       price:3000,  locations:['CW'],  desc:'Barra LED verde.', tags:['luz','led','verde','barra'] },
+  { id:28, name:'Barra de Luz Naranja',       cat:'gadget_eq', variant:'Orange',      price:3000,  locations:['MF'],  desc:'Barra LED naranja para señalización visible.', tags:['luz','led','naranja','barra'] },
+  { id:29, name:'Barra de Luz Morada',        cat:'gadget_eq', variant:'Purple',      price:3000,  locations:['HB'],  desc:'Barra LED morada.', tags:['luz','led','morada','purpura','barra'] },
+  { id:30, name:'Barra de Luz Roja',          cat:'gadget_eq', variant:'Red',         price:3000,  locations:['CW'],  desc:'Barra LED roja para señalización de peligro o decoración.', tags:['luz','led','roja','barra'] },
+  { id:31, name:'Barra de Luz Amarilla',      cat:'gadget_eq', variant:'Yellow',      price:3000,  locations:['MF'],  desc:'Barra LED amarilla.', tags:['luz','led','amarilla','barra'] },
+  { id:32, name:'Faro Delantero (Headlight)', cat:'gadget_eq', variant:null,          price:4000,  locations:['MF'],  desc:'Faro adicional montable para mejorar la visibilidad frontal de la locomotora.', tags:['faro','luz delantera','front light','visibilidad'] },
+  { id:33, name:'Barra LED Cilindro de Freno',cat:'gadget_eq', variant:'Brake LED',   price:6000,  locations:['GF'],  desc:'Monitor visual que indica la presión del cilindro de freno en tiempo real.', tags:['freno','brake','presion','monitor','led'] },
+  { id:34, name:'Marcador de Bandera Azul',   cat:'gadget_eq', variant:'Blue',        price:300,   locations:['CW'],  desc:'Bandera azul para señalización de vías o advertencia de trabajos. Visible a distancia.', tags:['bandera','senal','via','flag','marcar','señalizar'] },
+  { id:35, name:'Marcador de Bandera Cian',   cat:'gadget_eq', variant:'Cyan',        price:300,   locations:['CW'],  desc:'Bandera cian para señalización de vías.', tags:['bandera','senal','via','flag'] },
+  { id:36, name:'Marcador de Bandera Verde',  cat:'gadget_eq', variant:'Green',       price:300,   locations:['CW'],  desc:'Bandera verde.', tags:['bandera','senal','via','flag'] },
+  { id:37, name:'Marcador de Bandera Naranja',cat:'gadget_eq', variant:'Orange',      price:300,   locations:['CW'],  desc:'Bandera naranja.', tags:['bandera','senal','via','flag'] },
+  { id:38, name:'Marcador de Bandera Morada', cat:'gadget_eq', variant:'Purple',      price:300,   locations:['CW'],  desc:'Bandera morada.', tags:['bandera','senal','via','flag'] },
+  { id:39, name:'Marcador de Bandera Roja',   cat:'gadget_eq', variant:'Red',         price:300,   locations:['CW'],  desc:'Bandera roja.', tags:['bandera','senal','via','flag','peligro'] },
+  { id:40, name:'Marcador de Bandera Blanca', cat:'gadget_eq', variant:'White',       price:300,   locations:['CW'],  desc:'Bandera blanca.', tags:['bandera','senal','via','flag'] },
+  { id:41, name:'Marcador de Bandera Amarilla',cat:'gadget_eq',variant:'Yellow',      price:300,   locations:['CW'],  desc:'Bandera amarilla.', tags:['bandera','senal','via','flag'] },
+  { id:42, name:'Visera Solar (Sun Visor)',   cat:'gadget_eq',  variant:null,          price:19000, locations:['GF'],  desc:'Parasol montable en la cabina para reducir el deslumbramiento al conducir.', tags:['sol','parasol','visera','deslumbramiento','conductor'] },
+  { id:43, name:'Estante (Shelf)',            cat:'gadget_eq',  variant:null,          price:500,   locations:['GF'],  desc:'Superficie de almacenamiento montable dentro de la cabina para guardar ítems.', tags:['guardar','almacenar','cabina','estanteria','shelf'] },
+
+  // ─── GADGETS DE SISTEMA ───
+  { id:50, name:'Controlador Alternante',    cat:'gadget_sis', variant:'Alternating', price:650,   locations:['GF','MF'], desc:'Controla sistemas alternando entre dos estados. Útil para automatización de funciones de la loco.', tags:['controlador','automatico','switch','alternar'] },
+  { id:51, name:'Controlador Analógico',     cat:'gadget_sis', variant:'Analog',      price:400,   locations:['GF','MF'], desc:'Control de posición variable tipo dial. Permite ajuste fino de parámetros continuos.', tags:['dial','girar','control','analogico','knob'] },
+  { id:52, name:'Controlador de Botón',      cat:'gadget_sis', variant:'Button',      price:400,   locations:['GF','MF'], desc:'Control tipo pulsador para activar o desactivar funciones.', tags:['boton','pulsar','activar','desactivar'] },
+  { id:53, name:'Controlador Rotativo',      cat:'gadget_sis', variant:'Rotary',      price:400,   locations:['GF','MF'], desc:'Control rotativo para seleccionar entre múltiples opciones o valores.', tags:['girar','seleccionar','rotativo','rotary'] },
+  { id:54, name:'Reloj Digital',             cat:'gadget_sis', variant:'Clock',       price:3500,  locations:['GF'],      desc:'Muestra la hora del juego de forma digital, montable en cabina.', tags:['hora','tiempo','digital','display','reloj'] },
+  { id:55, name:'Velocímetro Digital',       cat:'gadget_sis', variant:'Speedometer', price:5000,  locations:['GF'],      desc:'Indica la velocidad actual de la locomotora en display digital. Más legible que el analógico.', tags:['velocidad','speed','display','kmh','medir'] },
+  { id:56, name:'Clínómetro',               cat:'gadget_sis', variant:'Clinometer',  price:7500,  locations:['GF'],      desc:'Mide el ángulo de inclinación de la vía (gradiente). Vital para calcular peso y velocidad.', tags:['pendiente','inclinacion','rampa','gradiente','angulo','medir'] },
+  { id:57, name:'Termómetro Infrarrojo',     cat:'gadget_sis', variant:'IR Therm.',   price:7500,  locations:['GF'],      desc:'Mide la temperatura de componentes a distancia. Útil para diagnosticar sobrecalentamiento.', tags:['temperatura','calor','medir','infrarrojo','overheat','motor'] },
+  { id:58, name:'Rastreador de Distancia',   cat:'gadget_sis', variant:'Distance',    price:12000, locations:['MF'],      desc:'Registra la distancia total recorrida por la locomotora.', tags:['distancia','kilometros','km','odometro','tracker','contar'] },
+  { id:59, name:'Limitador de Amperaje',     cat:'gadget_sis', variant:'Amp Limiter', price:12000, locations:['MF'],      desc:'Limita el amperaje máximo del motor eléctrico para protegerlo de sobrecarga.', tags:['amperios','motor electrico','proteccion','limitar','corriente','electrico'] },
+  { id:60, name:'Computador Antideslizante', cat:'gadget_sis', variant:'Anti-Wheelslip',price:28000,locations:['MF'],    desc:'Detecta y corrige automáticamente el patinaje de ruedas en la locomotora eléctrica.', tags:['patinar','ruedas','wheelslip','traccion','automatico','electrico'] },
+  { id:61, name:'Parada Automática de Tren', cat:'gadget_sis', variant:'ATS',         price:4000,  locations:['MF'],      desc:'Sistema de seguridad que detiene automáticamente el tren bajo ciertas condiciones.', tags:['frenar','seguridad','automatico','parar','stop'] },
+  { id:62, name:'Protección contra Sobrecalentamiento',cat:'gadget_sis',variant:'Overheat',price:20000,locations:['MF'], desc:'Monitorea la temperatura y actúa para evitar daños por exceso de calor en el motor.', tags:['temperatura','calor','proteger','overheat','motor','safeguard'] },
+  { id:63, name:'Selector de Agujas',        cat:'gadget_sis', variant:'Switch Setter',price:3500, locations:['MF'],     desc:'Permite cambiar agujas/desvíos de vía a distancia desde la cabina.', tags:['desvio','aguja','via','cambiar','switch','palanca'] },
+  { id:64, name:'Controlador MU Inalámbrico',cat:'gadget_sis', variant:'Wireless MU', price:24000, locations:['MF'],    desc:'Controla múltiples unidades de locomotora en modo MU de forma inalámbrica.', tags:['multiple','unidad','mu','wireless','doble','traccion'] },
+
+  // ─── GADGETS COSMÉTICOS ───
+  { id:70, name:'Baliza Ámbar',              cat:'gadget_cos', variant:'Amber Beacon',price:2000,  locations:['MF'],      desc:'Luz de emergencia rotatoria en color ámbar. Principalmente decorativa/cosmérica.', tags:['baliza','luz giratoria','emergencia','ambar','decoracion'] },
+  { id:71, name:'Baliza Azul',               cat:'gadget_cos', variant:'Blue Beacon', price:2500,  locations:['CW','HB'], desc:'Luz de emergencia rotatoria azul.', tags:['baliza','luz giratoria','emergencia','azul','decoracion'] },
+  { id:72, name:'Baliza Roja',               cat:'gadget_cos', variant:'Red Beacon',  price:2500,  locations:['CW','HB'], desc:'Luz de emergencia rotatoria roja.', tags:['baliza','luz giratoria','emergencia','roja','decoracion'] },
+
+  // ─── SOPORTES ───
+  { id:80, name:'Placa de Soporte Grande',   cat:'soporte', variant:'Plate Large',   price:250,   locations:['ALL'], desc:'Soporte plano grande para montar gadgets de mayor tamaño en superficies.', tags:['soporte','montar','placa','mount','fijar'] },
+  { id:81, name:'Placa de Soporte Mediana',  cat:'soporte', variant:'Plate Medium',  price:100,   locations:['ALL'], desc:'Soporte plano mediano para gadgets de tamaño estándar.', tags:['soporte','montar','placa','mount','fijar'] },
+  { id:82, name:'Soporte Inclinado Mediano', cat:'soporte', variant:'Slanted Medium',price:100,   locations:['ALL'], desc:'Soporte inclinado para gadgets que se benefician de un ángulo de visión.', tags:['soporte','montar','inclinado','angled','mount'] },
+  { id:83, name:'Tira de Soporte Larga',     cat:'soporte', variant:'Strip Long',    price:250,   locations:['ALL'], desc:'Tira larga para montar múltiples gadgets en fila.', tags:['soporte','tira','largo','mount','fila'] },
+  { id:84, name:'Tira de Soporte Larga (Base Pequeña)',cat:'soporte',variant:'Strip Long Small Base',price:300,locations:['ALL'],desc:'Variante de tira larga con base más estrecha.',tags:['soporte','tira','largo','mount'] },
+  { id:85, name:'Tira de Soporte Mediana',   cat:'soporte', variant:'Strip Medium',  price:100,   locations:['ALL'], desc:'Tira mediana para gadgets de tamaño intermedio.', tags:['soporte','tira','mediana','mount'] },
+  { id:86, name:'Tira de Soporte Pequeña',   cat:'soporte', variant:'Strip Small',   price:75,    locations:['ALL'], desc:'Tira pequeña para gadgets compactos.', tags:['soporte','tira','pequeña','mount'] },
+  { id:87, name:'Soporte Vertical Grande',   cat:'soporte', variant:'Upright Large', price:250,   locations:['ALL'], desc:'Soporte vertical grande para gadgets que requieren elevación.', tags:['soporte','vertical','alto','mount'] },
+  { id:88, name:'Soporte Vertical Pequeño',  cat:'soporte', variant:'Upright Small', price:100,   locations:['ALL'], desc:'Soporte vertical pequeño estándar.', tags:['soporte','vertical','mount'] },
+  { id:89, name:'Soporte Vertical (Base Larga)',cat:'soporte',variant:'Upright Small Long Base',price:150,locations:['ALL'],desc:'Soporte vertical pequeño con base alargada para mayor estabilidad.',tags:['soporte','vertical','mount'] },
+  { id:90, name:'Soporte Vertical (Base Ancha)',cat:'soporte',variant:'Upright Small Wide',price:200,locations:['ALL'],desc:'Soporte vertical pequeño con base más ancha.',tags:['soporte','vertical','mount'] },
+
+  // ─── LLAVES DE GARAJE ───
+  { id:100, name:'Llave de Garaje de Reginald',cat:'llave', variant:'Caboose',        price:4000,  locations:['CW'], desc:'Desbloquea el garaje de Reginald en C7. Otorga acceso al Caboose como vehículo de tripulación.', tags:['caboose','garage','desbloquear','vehiculo','reginald'] },
+  { id:101, name:'Llave de Garaje de Old Bob', cat:'llave', variant:'BE2 Microshunter',price:17000,locations:['FF'], desc:'Desbloquea el garaje de Old Bob en A3. Otorga acceso al BE2-260 Microshunter.', tags:['bob','microshunter','be2','garage','desbloquear','vehiculo'] },
+  { id:102, name:'Llave de Garaje de Steve',   cat:'llave', variant:'DE6 Slug',        price:7000,  locations:['HB'], desc:'Desbloquea el garaje de Steve en H7. Otorga acceso al DE6-860S Slug.', tags:['steve','slug','de6','garage','desbloquear','vehiculo'] },
+  { id:103, name:'Llave de Garaje de Olaf',    cat:'llave', variant:'DM1U Utility',    price:18000, locations:['MF'], desc:'Desbloquea el garaje de Olaf en F8. Otorga acceso al DM1U-150 Utility Vehicle.', tags:['olaf','dm1u','utility','garage','desbloquear','vehiculo'] },
+
+  // ─── CASETES ───
+  { id:110, name:'Casete A01',  cat:'cassette', variant:'A01', price:500, locations:['CW'], desc:'Pista de música para el Boombox. Serie A (ambiente/electrónica).', tags:['musica','audio','boombox','pista'] },
+  { id:111, name:'Casete A02',  cat:'cassette', variant:'A02', price:500, locations:['CW'], desc:'Pista de música para el Boombox.', tags:['musica','audio','boombox','pista'] },
+  { id:112, name:'Casete A03',  cat:'cassette', variant:'A03', price:500, locations:['FF'], desc:'Pista de música para el Boombox.', tags:['musica','audio','boombox','pista'] },
+  { id:113, name:'Casete A04',  cat:'cassette', variant:'A04', price:500, locations:['HB'], desc:'Pista de música para el Boombox.', tags:['musica','audio','boombox','pista'] },
+  { id:114, name:'Casete A05',  cat:'cassette', variant:'A05', price:500, locations:['MF'], desc:'Pista de música para el Boombox.', tags:['musica','audio','boombox','pista'] },
+  { id:115, name:'Casete A06',  cat:'cassette', variant:'A06', price:500, locations:['FF'], desc:'Pista de música para el Boombox.', tags:['musica','audio','boombox','pista'] },
+  { id:116, name:'Casete A07',  cat:'cassette', variant:'A07', price:500, locations:['CW'], desc:'Pista de música para el Boombox.', tags:['musica','audio','boombox','pista'] },
+  { id:117, name:'Casete A08',  cat:'cassette', variant:'A08', price:500, locations:['GF'], desc:'Pista de música para el Boombox.', tags:['musica','audio','boombox','pista'] },
+  { id:118, name:'Casete A09',  cat:'cassette', variant:'A09', price:500, locations:['MF'], desc:'Pista de música para el Boombox.', tags:['musica','audio','boombox','pista'] },
+  { id:119, name:'Casete A10',  cat:'cassette', variant:'A10', price:500, locations:['GF'], desc:'Pista de música para el Boombox.', tags:['musica','audio','boombox','pista'] },
+  { id:120, name:'Casete A11',  cat:'cassette', variant:'A11', price:500, locations:['HB'], desc:'Pista de música para el Boombox.', tags:['musica','audio','boombox','pista'] },
+  { id:121, name:'Casete A12',  cat:'cassette', variant:'A12', price:500, locations:['FF'], desc:'Pista de música para el Boombox.', tags:['musica','audio','boombox','pista'] },
+  { id:122, name:'Casete A13',  cat:'cassette', variant:'A13', price:500, locations:['MF'], desc:'Pista de música para el Boombox.', tags:['musica','audio','boombox','pista'] },
+  { id:123, name:'Casete A14',  cat:'cassette', variant:'A14', price:500, locations:['MF'], desc:'Pista de música para el Boombox.', tags:['musica','audio','boombox','pista'] },
+  { id:124, name:'Casete A15',  cat:'cassette', variant:'A15', price:500, locations:['FF'], desc:'Pista de música para el Boombox.', tags:['musica','audio','boombox','pista'] },
+  { id:125, name:'Casete P01',  cat:'cassette', variant:'P01', price:100, locations:['CW'], desc:'Pista de audio promocional para el Boombox. Serie P (especial).', tags:['musica','audio','boombox','promo'] },
+  { id:126, name:'Casete P02',  cat:'cassette', variant:'P02', price:100, locations:['CW'], desc:'Pista de audio promocional.', tags:['musica','audio','boombox','promo'] },
+  { id:127, name:'Casete P03',  cat:'cassette', variant:'P03', price:100, locations:['CW'], desc:'Pista de audio promocional.', tags:['musica','audio','boombox','promo'] },
+  { id:128, name:'Casete P04',  cat:'cassette', variant:'P04', price:100, locations:['CW'], desc:'Pista de audio promocional.', tags:['musica','audio','boombox','promo'] },
+  { id:129, name:'Casete P05',  cat:'cassette', variant:'P05', price:100, locations:['CW'], desc:'Pista de audio promocional.', tags:['musica','audio','boombox','promo'] },
+  { id:130, name:'Casete P06',  cat:'cassette', variant:'P06', price:100, locations:['CW'], desc:'Pista de audio promocional.', tags:['musica','audio','boombox','promo'] },
+  { id:131, name:'Casete P07',  cat:'cassette', variant:'P07', price:100, locations:['CW'], desc:'Pista de audio promocional.', tags:['musica','audio','boombox','promo'] },
+  { id:132, name:'Casete P08',  cat:'cassette', variant:'P08', price:100, locations:['CW'], desc:'Pista de audio promocional.', tags:['musica','audio','boombox','promo'] },
+  { id:133, name:'Casete P09',  cat:'cassette', variant:'P09', price:100, locations:['CW'], desc:'Pista de audio promocional.', tags:['musica','audio','boombox','promo'] },
+  { id:134, name:'Casete P10',  cat:'cassette', variant:'P10', price:100, locations:['CW'], desc:'Pista de audio promocional.', tags:['musica','audio','boombox','promo'] },
+
+  // ─── MISCELÁNEOS ───
+  { id:150, name:'Boombox',                  cat:'misc', variant:null,              price:5000,  locations:['CW'], desc:'Reproductor de casetes y radio estilo años 80. Reproduce los casetes de las series A y P.', tags:['musica','radio','reproductor','tape','stereo'] },
+  { id:151, name:'Linterna EOT',             cat:'misc', variant:'End of Train',    price:750,   locations:['ALL'], desc:'Marca el final del tren. Obligatoria para algunas licencias. Se engancha al último vagón.', tags:['final de tren','eot','señalizar','vagon','linterna','rear light'] },
+  { id:152, name:'Farol (Lantern)',           cat:'misc', variant:null,              price:1500,  locations:['ALL'], desc:'Linterna de kerosene de tipo ferroviario clásico. Portátil y montable.', tags:['luz','iluminar','farol','lampara','kerosene','retro'] },
+  { id:153, name:'Lista de Verificación Vapor',cat:'misc',variant:'Steam Checklist', price:500,  locations:['HB'], desc:'Checklist oficial para el arranque correcto de locomotoras a vapor. Referencia en cabina.', tags:['vapor','steam','checklist','lista','arranque','procedimiento'] },
+  { id:154, name:'Consola Portátil',          cat:'misc', variant:'Handheld Game',  price:1800,  locations:['CW'], desc:'Entretenimiento para el descanso entre maniobras. Puramente decorativa/de entretenimiento.', tags:['juego','game','entretenimiento','consola','play'] },
+  { id:155, name:'Cajón de Plástico',         cat:'misc', variant:'Crate Plastic',  price:100,   locations:['CW','HB'], desc:'Contenedor de plástico para organizar o transportar ítems.', tags:['caja','crate','organizar','guardar','contenedor'] },
+  { id:156, name:'Cajón de Madera',           cat:'misc', variant:'Crate Wooden',   price:70,    locations:['CW','HB'], desc:'Contenedor de madera para ítems. Versión más barata que el de plástico.', tags:['caja','crate','organizar','guardar','madera','contenedor'] },
+  { id:157, name:'Caja de Archivos',          cat:'misc', variant:'File Box',       price:50,    locations:['CW','HB'], desc:'Caja de oficina para organizar documentos y papeles dentro de la cabina.', tags:['archivos','oficina','papeles','organizar','carpeta'] },
+
+  // ─── PINTURA ───
+  { id:160, name:'Lata de Pintura DVRT',      cat:'pintura', variant:'DVRT',         price:15000, locations:['ALL'], desc:'Pintura con el esquema de color oficial del DVRT (Derail Valley Railway Transport). Disponible en todas las tiendas.', tags:['pintar','livery','color','locomotora','esquema','dvrt'] },
+  { id:161, name:'Lata de Pintura Demonstrator',cat:'pintura',variant:'Demonstrator',price:30000, locations:['MF'],  desc:'Pintura especial con el esquema &quot;Demonstrator&quot; para locomotoras del museo. Solo en Machine Factory.', tags:['pintar','livery','color','museo','demonstrator','especial'] },
+  { id:162, name:'Lata de Arena (Sand Can)',   cat:'pintura', variant:'Sand',         price:200,   locations:['ALL'], desc:'Rellena los depósitos de arena de la locomotora. La arena mejora la tracción en vías resbaladizas.', tags:['arena','traccion','resbaladizo','rellenar','arena','sand'] },
+  { id:163, name:'Sensor de Proximidad (Proximity Sensor)', cat:'gadget_sis', variant:'', price:8500, locations:['MF'], desc:'Se coloca en el acoplador de cualquier extremo del tren. Detecta obstáculos en el rango configurado y transmite la distancia al Panel de Proximidad en cabina. Ajuste de rango y canal de frecuencia. Stock en MF: 20.', tags:['sensor','proximidad','distancia','obstaculo','acoplador','maniobras','proximity','colision','gadget'] },
+  { id:164, name:'Panel de Proximidad (Proximity Reader)', cat:'gadget_sis', variant:'', price:8000, locations:['MF'], desc:'Panel de cabina que trabaja junto al Sensor de Proximidad. Muestra en tiempo real la distancia al obstáculo detectado y emite aviso sonoro. Modos: Automático (según el reversor) o Canal (frecuencia específica). Requiere conexión eléctrica. Stock en MF: 10.', tags:['panel','proximidad','lector','cabina','distancia','sensor','reader','maniobras','proximity','gadget'] },
+];
+
+// ═══════════════════════════════════════════════════════
+// ESTADO
+// ═══════════════════════════════════════════════════════
+let currentView = 'all';
+let searchQuery = '';
+
+// ═══════════════════════════════════════════════════════
+// BÚSQUEDA
+// ═══════════════════════════════════════════════════════
+function normalize(str) {
+  return str.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ');
+}
+
+function matchesSearch(item, q) {
+  if (!q) return true;
+  const n = normalize(q);
+  const haystack = normalize([
+    item.name, item.variant || '', item.desc,
+    ...(item.tags || []),
+    CATEGORIES[item.cat]?.label || '',
+    item.locations.map(l => LOCATIONS[l]?.name || l).join(' ')
+  ].join(' '));
+  return n.split(/\s+/).every(word => haystack.includes(word));
+}
+
+function highlight(text, q) {
+  if (!q) return escH(text);
+  const words = normalize(q).split(/\s+/).filter(Boolean);
+  let result = escH(text);
+  words.forEach(w => {
+    const re = new RegExp(escRe(w), 'gi');
+    result = result.replace(re, m => `<mark>${m}</mark>`);
+  });
+  return result;
+}
+
+function escH(s) {
+  return s.replace(/&amp;/g,'&amp;amp;').replace(/</g,'&amp;lt;').replace(/>/g,'&amp;gt;');
+}
+function escRe(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&amp;');
+}
+
+// ═══════════════════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════════════════
+function buildSidebar() {
+  const aside = document.getElementById('sidebar');
+  const total = ITEMS.length;
+
+  let html = '';
+
+  html += `<span class=&quot;sidebar-label&quot;>Vista</span>`;
+  html += navBtn('all', '🗂️', 'Todos los ítems', total);
+  html += navBtn('az', '🔤', 'A → Z', total);
+
+  html += `<span class=&quot;sidebar-label&quot;>Por Categoría</span>`;
+  Object.entries(CATEGORIES).forEach(([key, cat]) => {
+    const cnt = ITEMS.filter(i => i.cat === key).length;
+    html += navBtn('cat_' + key, cat.icon, cat.label, cnt);
+  });
+
+  html += `<span class=&quot;sidebar-label&quot;>Por Tienda</span>`;
+  Object.entries(LOCATIONS).forEach(([key, loc]) => {
+    if (key === 'ALL') return;
+    const cnt = ITEMS.filter(i => i.locations.includes(key) || i.locations.includes('ALL')).length;
+    html += navBtn('loc_' + key, loc.icon, loc.name, cnt);
+  });
+
+  aside.innerHTML = html;
+}
+
+function navBtn(view, icon, label, count) {
+  const active = currentView === view ? ' active' : '';
+  return `<button class=&quot;nav-btn${active}&quot; onclick=&quot;setView('${view}')&quot;>
+    <div class=&quot;dot&quot;></div>
+    <span>${icon} ${escH(label)}</span>
+    <span class=&quot;count&quot;>${count}</span>
+  </button>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// CARD
+// ═══════════════════════════════════════════════════════
+function renderCard(item, q) {
+  const cat = CATEGORIES[item.cat];
+  const iconClass = 'icon-' + item.cat.replace('_','-');
+  const locTags = item.locations.map(l =>
+    l === 'ALL'
+      ? `<span class=&quot;tag location&quot;>Todas las tiendas</span>`
+      : `<span class=&quot;tag location&quot;>${escH(LOCATIONS[l]?.name || l)}</span>`
+  ).join('');
+
+  return `<div class=&quot;item-card&quot;>
+    <div class=&quot;card-top&quot;>
+      <div class=&quot;cat-icon ${iconClass}&quot;>${cat?.icon || '📦'}</div>
+      <div>
+        <div class=&quot;card-name&quot;>${highlight(item.name, q)}</div>
+        ${item.variant ? `<div class=&quot;card-variant&quot;>${highlight(item.variant, q)}</div>` : ''}
+      </div>
+    </div>
+    <div class=&quot;card-desc&quot;>${highlight(item.desc, q)}</div>
+    <div class=&quot;card-meta&quot;>
+      <span class=&quot;tag price&quot;>$${item.price.toLocaleString()}</span>
+      <span class=&quot;tag cat&quot;>${escH(cat?.label || item.cat)}</span>
+      ${locTags}
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// VISTAS
+// ═══════════════════════════════════════════════════════
+function renderAll(filtered, q) {
+  if (!filtered.length) return emptyState(q);
+  return `<div class=&quot;items-grid&quot;>${filtered.map(i => renderCard(i, q)).join('')}</div>`;
+}
+
+function renderAZ(filtered, q) {
+  if (!filtered.length) return emptyState(q);
+  const groups = {};
+  filtered.forEach(i => {
+    const ch = i.name[0].toUpperCase();
+    if (!groups[ch]) groups[ch] = [];
+    groups[ch].push(i);
+  });
+  return Object.keys(groups).sort().map(ch =>
+    `<div class=&quot;alpha-group&quot;>
+      <div class=&quot;alpha-char&quot;>— ${ch} —</div>
+      <div class=&quot;items-grid&quot;>${groups[ch].map(i => renderCard(i, q)).join('')}</div>
+    </div>`
+  ).join('');
+}
+
+function renderByCategory(filtered, q) {
+  if (!filtered.length) return emptyState(q);
+  let html = '';
+  Object.entries(CATEGORIES).forEach(([key, cat]) => {
+    const items = filtered.filter(i => i.cat === key);
+    if (!items.length) return;
+    html += `<div class=&quot;cat-section&quot;>
+      <div class=&quot;cat-header&quot;>
+        <span style=&quot;font-size:22px&quot;>${cat.icon}</span>
+        <span class=&quot;cat-title&quot;>${escH(cat.label)}</span>
+        <span class=&quot;cat-count&quot;>${items.length} ítem${items.length!==1?'s':''}</span>
+      </div>
+      <div class=&quot;items-grid&quot;>${items.map(i => renderCard(i, q)).join('')}</div>
+    </div>`;
+  });
+  return html;
+}
+
+function renderByLocation(locKey, filtered, q) {
+  if (!filtered.length) return emptyState(q);
+  const loc = LOCATIONS[locKey];
+  return `<div class=&quot;city-section&quot;>
+    <div class=&quot;city-header&quot;>
+      <span class=&quot;city-icon&quot;>${loc.icon}</span>
+      <span class=&quot;city-name&quot;>${escH(loc.name)}</span>
+      <span class=&quot;city-abbr&quot;>${loc.abbr}</span>
+      <span class=&quot;city-count&quot;>${filtered.length} ítems</span>
+    </div>
+    <div class=&quot;city-grid&quot;>${filtered.map(i => renderCard(i, q)).join('')}</div>
+  </div>`;
+}
+
+function renderAllLocations(q) {
+  let html = '';
+  Object.entries(LOCATIONS).forEach(([key, loc]) => {
+    if (key === 'ALL') return;
+    const items = ITEMS.filter(i =>
+      (i.locations.includes(key) || i.locations.includes('ALL')) &amp;&amp; matchesSearch(i, q)
+    );
+    if (!items.length) return;
+    html += `<div class=&quot;city-section&quot;>
+      <div class=&quot;city-header&quot;>
+        <span class=&quot;city-icon&quot;>${loc.icon}</span>
+        <span class=&quot;city-name&quot;>${escH(loc.name)}</span>
+        <span class=&quot;city-abbr&quot;>${loc.abbr}</span>
+        <span class=&quot;city-count&quot;>${items.length} ítems</span>
+      </div>
+      <div class=&quot;city-grid&quot;>${items.map(i => renderCard(i, q)).join('')}</div>
+    </div>`;
+  });
+  return html || emptyState(q);
+}
+
+function emptyState(q) {
+  return `<div class=&quot;items-grid&quot;><div class=&quot;empty&quot;>
+    <div class=&quot;e-icon&quot;>🔍</div>
+    <div class=&quot;e-msg&quot;>Sin resultados para &quot;${escH(q)}&quot;</div>
+    <div class=&quot;e-sub&quot;>Intenta con sinónimos: &quot;luz&quot; → &quot;linterna&quot;, &quot;soldar&quot; → &quot;pistola de soldar&quot;</div>
+  </div></div>`;
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER PRINCIPAL
+// ═══════════════════════════════════════════════════════
+function render() {
+  const q = searchQuery;
+  const main = document.getElementById('mainContent');
+  let title = '';
+  let content = '';
+
+  if (currentView === 'all' || q) {
+    const filtered = ITEMS.filter(i => matchesSearch(i, q));
+    if (q) {
+      title = `Resultados para &quot;${q}&quot;`;
+      content = renderAll(filtered, q);
+    } else if (currentView === 'all') {
+      title = 'Todos los ítems';
+      content = renderAll(filtered, q);
+    }
+  }
+
+  if (!q) {
+    if (currentView === 'az') {
+      title = 'A → Z';
+      content = renderAZ(ITEMS.slice().sort((a,b) => a.name.localeCompare(b.name)), q);
+    } else if (currentView.startsWith('cat_')) {
+      const key = currentView.replace('cat_', '');
+      const filtered = ITEMS.filter(i => i.cat === key);
+      title = CATEGORIES[key]?.label || key;
+      content = `<div class=&quot;items-grid&quot;>${filtered.map(i => renderCard(i, q)).join('')}</div>`;
+    } else if (currentView.startsWith('loc_')) {
+      const key = currentView.replace('loc_', '');
+      const filtered = ITEMS.filter(i => i.locations.includes(key) || i.locations.includes('ALL'));
+      title = LOCATIONS[key]?.name || key;
+      content = renderByLocation(key, filtered, q);
+    }
+  }
+
+  const count = q
+    ? ITEMS.filter(i => matchesSearch(i, q)).length
+    : (currentView.startsWith('loc_')
+        ? ITEMS.filter(i => { const k = currentView.replace('loc_',''); return i.locations.includes(k) || i.locations.includes('ALL'); }).length
+        : currentView.startsWith('cat_')
+          ? ITEMS.filter(i => i.cat === currentView.replace('cat_','')).length
+          : ITEMS.length);
+
+  main.innerHTML = `
+    <div class=&quot;view-header&quot;>
+      <span class=&quot;view-title&quot;>${title}</span>
+      <span class=&quot;view-count&quot;>${count} ítem${count!==1?'s':''}</span>
+    </div>
+    ${content}`;
+}
+
+// ═══════════════════════════════════════════════════════
+// EVENTOS
+// ═══════════════════════════════════════════════════════
+function setView(view) {
+  currentView = view;
+  searchQuery = '';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('clearBtn').style.display = 'none';
+  buildSidebar();
+  render();
+}
+
+function clearSearch() {
+  searchQuery = '';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('clearBtn').style.display = 'none';
+  render();
+}
+
+document.getElementById('searchInput').addEventListener('input', function() {
+  searchQuery = this.value.trim();
+  document.getElementById('clearBtn').style.display = searchQuery ? 'block' : 'none';
+  if (searchQuery) currentView = 'all';
+  buildSidebar();
+  render();
+});
+
+// ─── INIT ───
+buildSidebar();
+render();
+</script>
+</body>
+</html>
+" style="width:100%;height:82vh;min-height:680px;border:none;display:block;background:#0e0f0e;"></iframe>
+    </section>
+  </div>
+
+
+  <!-- CAZADOR DE DEMONSTRATORS -->
+  <div class="tab-panel" data-panel="museum">
+    <section class="card">
+      <h2>Cazador de Demonstrators <span class="tag">búsqueda activa</span></h2>
+      <p class="card-desc">Los 55 puntos de spawn confirmados por la comunidad (guía de MarcusR2 en Steam), organizados por estación. Los spawns en tu save son fijos — si revisaste un punto y estaba vacío, no vuelvas. Marca cada punto mientras juegas: ⬜ sin revisar → ✗ revisado vacío → 🚂 encontré loco aquí.</p>
+
+      <div class="museum-stats-grid">
+        <div class="stat"><div class="num" id="museum-stat-found">0/6</div><div class="lbl">Locos encontradas</div></div>
+        <div class="stat"><div class="num" id="museum-stat-reviewed">0/55</div><div class="lbl">Puntos revisados</div></div>
+        <div class="stat"><div class="num" id="museum-stat-pending">55</div><div class="lbl">Puntos pendientes</div></div>
+      </div>
+
+      <div class="museum-legend">
+        <span>⬜ Sin revisar</span>
+        <span>✗ Revisado, vacío — no volver</span>
+        <span>🚂 Loco encontrada aquí</span>
+        <button class="museum-reset-btn" id="museumResetBtn">Reiniciar tracker</button>
+      </div>
+
+      <div id="museum-tracker-body"></div>
+      <div class="museum-found-summary" id="museum-found-summary" style="display:none;">
+        <h4>Resumen de locos encontradas</h4>
+        <div id="museum-found-list"></div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    Datos de licencias: tabla histórica de <a href="https://derailvalley.wiki.gg/wiki/License" target="_blank" rel="noopener">derailvalley.wiki.gg</a>, puede no reflejar Build 99 con exactitud — verifica en el Career Manager dentro del juego antes de gastarte la plata. Fórmula de pago por carga: documentada en <a href="https://derailvalley.fandom.com/wiki/Cargo" target="_blank" rel="noopener">derailvalley.fandom.com/wiki/Cargo</a> (pago base por vagón = tarifa a 20&nbsp;km en línea recta).
+    <br>Tus datos (licencias, metas, viajes registrados) se guardan en el almacenamiento local de tu navegador (localStorage), ligado a este archivo — funciona tanto dentro de Claude como abriéndolo suelto en tu PC. Eso sí: si lo abres directamente con doble clic en distintos navegadores, cada uno guarda su propia copia por separado (no se comparten entre Chrome, Firefox, etc.), y si borras el caché/datos de navegación se pierde. Usa los botones de copia de seguridad arriba del todo de vez en cuando para no perder nada.
+  </footer>
+</div>
+
+<div class="modal-overlay" id="tripInfoModal">
+  <div class="modal-box">
+    <button class="modal-close" id="modalCloseBtn" title="Cerrar">✕</button>
+    <p class="modal-title">Detalle del viaje</p>
+    <p class="modal-subtitle">Toda la información guardada de este viaje, sin tener que entrar a editar.</p>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const BASE_LICENSES = [
+    {id:'tut1', name:'Conductor de Tren', cost:0, copay:0, prereq:null, unlocks:'Tomar trabajos de hasta 5 vagones', tutorial:true},
+    {id:'tut2', name:'Flete (Freight Haul)', cost:0, copay:0, prereq:null, unlocks:'Tomar trabajos de flete', tutorial:true},
+    {id:'tut3', name:'DE2', cost:0, copay:0, prereq:null, unlocks:'Usar locomotoras DE2 (hasta 400t)', tutorial:true},
+    {id:'shunt', name:'Maniobras (Shunting)', cost:1000, copay:0, prereq:null, unlocks:'Tomar trabajos de maniobras'},
+    {id:'mu', name:'Unidad Múltiple (MU)', cost:30000, copay:5000, prereq:null, unlocks:'Conectar locomotoras con cable MU'},
+    {id:'manualserv', name:'Servicio Manual', cost:20000, copay:7000, prereq:'tl1', unlocks:'Mantenimiento manual en estaciones de servicio'},
+    {id:'logi', name:'Flete Logístico', cost:20000, copay:0, prereq:'ccur1', unlocks:'Tomar trabajos de flete logístico'},
+    {id:'de6', name:'DE6', cost:200000, copay:30000, prereq:'ccur2', unlocks:'Usar locomotoras DE6 (hasta 1400t)'},
+    {id:'dm3', name:'DM3', cost:30000, copay:0, prereq:null, unlocks:'Usar locomotoras DM3'},
+    {id:'dh4', name:'DH4', cost:50000, copay:10000, prereq:'tl2', unlocks:'Usar locomotoras DH4'},
+    {id:'s060', name:'S060', cost:20000, copay:0, prereq:null, unlocks:'Usar locomotoras S060'},
+    {id:'s282', name:'S282', cost:50000, copay:10000, prereq:'ccur2', unlocks:'Usar locomotoras S282 (hasta 1000t)'},
+    {id:'ccur1', name:'Órdenes Concurrentes 1', cost:10000, copay:4000, prereq:null, unlocks:'Tomar dos trabajos a la vez'},
+    {id:'ccur2', name:'Órdenes Concurrentes 2', cost:20000, copay:10000, prereq:'ccur1', unlocks:'Tomar cualquier cantidad de trabajos'},
+    {id:'tl1', name:'Longitud de Tren 1', cost:10000, copay:1900, prereq:null, unlocks:'Trabajos de hasta 10 vagones'},
+    {id:'tl2', name:'Longitud de Tren 2', cost:20000, copay:10000, prereq:'tl1', unlocks:'Trabajos de cualquier cantidad de vagones'},
+    {id:'haz1', name:'Hazmat 1', cost:40000, copay:38000, prereq:null, unlocks:'Carga sensible / inflamable'},
+    {id:'haz2', name:'Hazmat 2', cost:130000, copay:150000, prereq:'haz1', unlocks:'Carga más peligrosa'},
+    {id:'haz3', name:'Hazmat 3', cost:290000, copay:300000, prereq:'haz2', unlocks:'Carga hazmat más peligrosa'},
+    {id:'mil1', name:'Militar 1', cost:100000, copay:300000, prereq:null, unlocks:'Zonas militares restringidas'},
+    {id:'mil2', name:'Militar 2', cost:30000, copay:0, prereq:'mil1', unlocks:'Carga militar frágil y valiosa'},
+    {id:'mil3', name:'Militar 3', cost:400000, copay:300000, prereq:'mil2', unlocks:'Carga militar más secreta, top secret'}
+  ];
+
+  const STORAGE_KEY = 'dv-licenses-state';
+  const TARGET_KEY = 'dv-job-target';
+  const TRIP_KEY = 'dv-trip-log';
+  const TAB_KEY = 'dv-active-tab';
+
+  let state = null;
+  let customCounter = 0;
+  let trips = [];
+  let editingTripId = null;
+
+  const saveIndicator = document.getElementById('saveIndicator');
+
+  function fmtMoney(n){
+    if(n===null||n===undefined||isNaN(n)) return '—';
+    return '$' + Math.round(n).toLocaleString('es-CO');
+  }
+  function fmtDuration(min){
+    if(min===null||min===undefined||isNaN(min)) return '—';
+    const h = Math.floor(min/60), m = Math.round(min%60);
+    return h>0 ? (h+'h '+m+'min') : (m+'min');
+  }
+  function num(id){ const el=document.getElementById(id); return el ? parseFloat(el.value) : NaN; }
+  function gv(id){ const el=document.getElementById(id); return el ? el.value : ''; }
+
+  /* ============ LICENCIAS ============ */
+
+  function defaultState(){
+    return BASE_LICENSES.map(l => ({...l, owned: !!l.tutorial}));
+  }
+
+  async function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        state = JSON.parse(raw);
+        saveIndicator.textContent = 'cargado de tu sesión guardada';
+        return;
+      }
+    }catch(e){ /* no existing key yet */ }
+    state = defaultState();
+    saveIndicator.textContent = 'iniciado con valores de wiki';
+  }
+
+  async function saveState(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      saveIndicator.textContent = 'guardado ✓';
+    }catch(e){
+      saveIndicator.textContent = 'no se pudo guardar (revisa el almacenamiento del navegador)';
+    }
+    pushToCloud(true);
+  }
+
+  function renderLicenses(){
+    const body = document.getElementById('lic-body');
+    body.innerHTML = '';
+    state.forEach((row,idx)=>{
+      const tr = document.createElement('tr');
+      if(row.tutorial) tr.classList.add('tutorial');
+      else if(row.owned) tr.classList.add('owned');
+
+      const tdCheck = document.createElement('td');
+      if(row.tutorial){
+        tdCheck.textContent = '✓';
+      } else {
+        const cb = document.createElement('input');
+        cb.type='checkbox'; cb.checked=!!row.owned;
+        cb.addEventListener('change', ()=>{ row.owned = cb.checked; renderLicenses(); saveState(); });
+        tdCheck.appendChild(cb);
+      }
+      tr.appendChild(tdCheck);
+
+      const tdName = document.createElement('td');
+      tdName.textContent = row.name;
+      tr.appendChild(tdName);
+
+      const tdCost = document.createElement('td');
+      if(row.tutorial){
+        tdCost.textContent = 'gratis';
+      } else {
+        const inp = document.createElement('input');
+        inp.type='number'; inp.min='0'; inp.step='1'; inp.value=row.cost;
+        inp.addEventListener('change', ()=>{ row.cost = parseFloat(inp.value)||0; renderLicenses(); saveState(); });
+        tdCost.appendChild(inp);
+      }
+      tr.appendChild(tdCost);
+
+      const tdCopay = document.createElement('td');
+      tdCopay.textContent = row.copay ? fmtMoney(row.copay) : '—';
+      tr.appendChild(tdCopay);
+
+      const tdUnlocks = document.createElement('td');
+      tdUnlocks.className='unlocks-cell';
+      tdUnlocks.textContent = row.unlocks || '';
+      tr.appendChild(tdUnlocks);
+
+      const tdRemove = document.createElement('td');
+      if(row.custom){
+        const btn = document.createElement('button');
+        btn.className='remove-row'; btn.textContent='✕';
+        btn.title='Quitar fila';
+        btn.addEventListener('click', ()=>{ state.splice(idx,1); renderLicenses(); saveState(); });
+        tdRemove.appendChild(btn);
+      }
+      tr.appendChild(tdRemove);
+
+      body.appendChild(tr);
+    });
+
+    const ownedRows = state.filter(r=>r.owned && !r.tutorial);
+    const invested = ownedRows.reduce((a,r)=>a+(r.cost||0),0);
+    const copay = ownedRows.reduce((a,r)=>a+(r.copay||0),0);
+    const buyable = state.filter(r=>!r.tutorial).length;
+    const ownedCount = state.filter(r=>r.owned && !r.tutorial).length;
+    document.getElementById('sum-invested').textContent = fmtMoney(invested);
+    document.getElementById('sum-copay').textContent = fmtMoney(copay);
+    document.getElementById('sum-owned').textContent = ownedCount+'/'+buyable;
+
+    const idSet = new Set(state.filter(r=>r.owned).map(r=>r.id));
+    const candidates = state.filter(r=>!r.owned && !r.tutorial && (!r.prereq || idSet.has(r.prereq)));
+    candidates.sort((a,b)=>(a.cost||0)-(b.cost||0));
+    const recDiv = document.getElementById('recommend');
+    if(candidates.length===0){
+      recDiv.textContent = 'No hay candidatas disponibles todavía — revisa qué prerrequisito te falta.';
+    } else {
+      const top = candidates.slice(0,3).map(c=>'<b>'+c.name+'</b> ('+fmtMoney(c.cost)+')').join(' · ');
+      recDiv.innerHTML = 'Más baratas que ya podrías comprar ahora mismo: ' + top + '.';
+    }
+  }
+
+  document.getElementById('resetCosts').addEventListener('click', ()=>{
+    const base = defaultState();
+    state.forEach(row=>{
+      if(!row.custom){
+        const b = base.find(x=>x.id===row.id);
+        if(b){ row.cost = b.cost; row.copay = b.copay; }
+      }
+    });
+    renderLicenses(); saveState();
+  });
+
+  document.getElementById('addCustom').addEventListener('click', ()=>{
+    customCounter++;
+    state.push({
+      id:'custom'+customCounter+'-'+Date.now(),
+      name:'Licencia nueva (edita el nombre)',
+      cost:0, copay:0, prereq:null,
+      unlocks:'Descríbela aquí', custom:true, owned:false
+    });
+    renderLicenses(); saveState();
+  });
+
+  document.getElementById('lic-body').addEventListener('dblclick', (e)=>{
+    const td = e.target.closest('td');
+    if(!td) return;
+    const tr = td.closest('tr');
+    const rowIndex = Array.from(document.getElementById('lic-body').children).indexOf(tr);
+    const row = state[rowIndex];
+    if(!row || !row.custom) return;
+    if(td.cellIndex===1){
+      const val = prompt('Nombre de la licencia:', row.name);
+      if(val){ row.name = val; renderLicenses(); saveState(); }
+    } else if(td.cellIndex===4){
+      const val = prompt('¿Qué desbloquea?', row.unlocks);
+      if(val!==null){ row.unlocks = val; renderLicenses(); saveState(); }
+    }
+  });
+
+  /* ============ EVALUADOR DE TRABAJO ============ */
+
+  const ticket = document.getElementById('ticket');
+  const verdictEl = document.getElementById('verdict');
+
+  async function loadJobPrefs(){
+    try{
+      const raw = localStorage.getItem(TARGET_KEY);
+      if(raw){
+        document.getElementById('targetRate').value = raw;
+      }
+    }catch(e){ /* sin valor guardado aún */ }
+  }
+
+  document.getElementById('targetRate').addEventListener('change', (e)=>{
+    try{ localStorage.setItem(TARGET_KEY, e.target.value); }catch(err){}
+  });
+
+  function calcular(){
+    const basePayment = num('basePayment');
+    const distance = num('distanceKm');
+    const tripTime = num('tripTime');
+    const bonusPct = (isNaN(num('bonusPct')) ? 0 : num('bonusPct'));
+    const fees = (isNaN(num('feesFlat')) ? 0 : num('feesFlat'));
+    const target = num('targetRate');
+
+    if(isNaN(basePayment)){
+      document.getElementById('r-gross').textContent = 'Falta el pago base del papel';
+      ['r-bonus','r-fees','r-net','r-hour','r-km'].forEach(id=>document.getElementById(id).textContent='—');
+      verdictEl.style.display='none';
+      retriggerTicket();
+      return;
+    }
+
+    const withBonus = basePayment * (1 + bonusPct/100);
+    const net = withBonus - fees;
+    const perHour = (!isNaN(tripTime) && tripTime>0) ? net/(tripTime/60) : null;
+    const perKm = (!isNaN(distance) && distance>0) ? net/distance : null;
+
+    document.getElementById('r-gross').textContent = fmtMoney(basePayment);
+    document.getElementById('r-bonus').textContent = fmtMoney(withBonus);
+    document.getElementById('r-fees').textContent = '-' + fmtMoney(fees);
+    document.getElementById('r-net').textContent = fmtMoney(net);
+    document.getElementById('r-hour').textContent = perHour===null ? '— (sin tiempo)' : fmtMoney(perHour);
+    document.getElementById('r-km').textContent = perKm===null ? '— (sin distancia)' : fmtMoney(perKm);
+
+    if(!isNaN(target) && target>0 && perHour!==null){
+      verdictEl.style.display='block';
+      const ratio = perHour/target;
+      if(ratio>=1){ verdictEl.className='verdict good'; verdictEl.textContent='Por encima de tu meta de $/hora — vale la pena.'; }
+      else if(ratio>=0.8){ verdictEl.className='verdict mid'; verdictEl.textContent='Cerca de tu meta, pero por debajo — decisión tuya.'; }
+      else { verdictEl.className='verdict bad'; verdictEl.textContent='Bastante por debajo de tu meta de $/hora.'; }
+    } else {
+      verdictEl.style.display='none';
+    }
+    retriggerTicket();
+  }
+
+  function retriggerTicket(){
+    ticket.classList.remove('show');
+    void ticket.offsetWidth;
+    requestAnimationFrame(()=>ticket.classList.add('show'));
+  }
+
+  document.getElementById('calcBtn').addEventListener('click', calcular);
+
+  /* ============ BITÁCORA DE VIAJES ============ */
+
+  async function loadTrips(){
+    try{
+      const raw = localStorage.getItem(TRIP_KEY);
+      if(raw){ trips = JSON.parse(raw); return; }
+    }catch(e){ /* sin historial aún */ }
+    trips = [];
+  }
+
+  async function saveTrips(){
+    try{
+      localStorage.setItem(TRIP_KEY, JSON.stringify(trips));
+      saveIndicator.textContent = 'guardado ✓';
+    }catch(e){
+      saveIndicator.textContent = 'no se pudo guardar (revisa el almacenamiento del navegador)';
+    }
+    pushToCloud(true);
+  }
+
+  function tnum(id){ const v = parseFloat(gv(id)); return isNaN(v) ? null : v; }
+
+  function minutesBetween(startStr, endStr){
+    if(!startStr || !endStr) return null;
+    // startStr y endStr son "HH:MM"
+    const parseHM = s => { const [h,m]=s.split(':').map(Number); return h*60+m; };
+    let s = parseHM(startStr), e = parseHM(endStr);
+    if(isNaN(s)||isNaN(e)) return null;
+    if(e < s) e += 24*60; // cruce de medianoche — ningún viaje dura más de 24h
+    const diff = e - s;
+    return diff > 0 ? diff : null;
+  }
+
+  function computeTripMetrics(t){
+    // tripDuration: campo nuevo (minutos directos del informe)
+    // fallback: calcular desde startTime/endTime para viajes guardados antes de v1.6.3
+    const duration = (t.tripDuration!==null && t.tripDuration!==undefined)
+      ? t.tripDuration
+      : minutesBetween(t.startTime, t.endTime);
+    let net = null;
+    if(t.realPayment !== null && t.realPayment !== undefined){
+      net = t.realPayment - (t.maintenanceCost || 0);
+    }
+    const perHour = (net!==null && duration && duration>0) ? net/(duration/60) : null;
+    const perKm = (net!==null && t.distanceKm) ? net/t.distanceKm : null;
+    const perCar = (net!==null && t.cars) ? net/t.cars : null;
+    return {duration, net, perHour, perKm, perCar};
+  }
+
+  function jobTypeLabel(v){
+    if(v==='maniobras') return 'Maniobras';
+    if(v==='flete') return 'Flete';
+    if(v==='flete-logistico') return 'Flete Logístico';
+    return '—';
+  }
+  function bonusLabel(v){
+    if(v==='si') return '<span style="color:var(--green)">Sí</span>';
+    if(v==='no') return '<span style="color:var(--red)">No</span>';
+    if(v==='na') return '<span style="color:var(--ink-dim)">N/A</span>';
+    return '—';
+  }
+  function incidentLabel(v){
+    const map = {
+      'no':'No, todo limpio',
+      'descarrilamiento':'Descarrilamiento',
+      'colision':'Colisión con otro vehículo',
+      'frenos':'Fallo de frenos / tren sin control',
+      'dano-carga':'Daño a la carga',
+      'dano-loco':'Daño a la locomotora',
+      'dano-vagon':'Daño a vagones',
+      'dano-ambiente':'Daño ambiental (derrame)',
+      'hazmat':'Incidente hazmat / explosión',
+      'rueda':'Patinaje de ruedas severo',
+      'via-equivocada':'Tomé la vía equivocada',
+      'cambio-mal':'Cambiavía mal puesto',
+      'enganche':'Problema de enganche / acoplado',
+      'combustible':'Se quedó sin combustible/agua/carbón',
+      'motor':'Fallo del motor / transmisión',
+      'multiple':'Múltiples incidentes'
+    };
+    return map[v] || '—';
+  }
+  function escHtml(s){
+    if(s===null||s===undefined) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function extractACValue(id){
+    const raw = gv(id);
+    // formato: "HB — Harbor & Town" → quedamos con "HB — Harbor & Town" completo
+    return raw;
+  }
+
+  function readTripForm(){
+    return {
+      id: editingTripId || ('trip-'+Date.now()+'-'+Math.floor(Math.random()*1000)),
+      jobCode: gv('t-jobCode'),
+      jobType: gv('t-jobType'),
+      origin: extractACValue('t-origin'),
+      destination: extractACValue('t-destination'),
+      cars: tnum('t-carCount'),
+      trainWeight: tnum('t-trainWeight'),
+      trainLength: tnum('t-trainLength'),
+      trainValue: trainValueInDollars('t-trainValue','t-trainValueUnit'),
+      requiredLicenses: gv('t-requiredLicenses'),
+      basePaymentPlanned: tnum('t-basePayment'),
+      bonusDeadlineMin: tnum('t-bonusDeadlineMin'),
+      locomotive: extractACValue('t-locomotive'),
+      tripDuration: tnum('t-tripDuration'),
+      distanceKm: tnum('t-distanceKm'),
+      maintenanceCost: tnum('t-maintenanceCost'),
+      realPayment: tnum('t-realPayment'),
+      bonusAchieved: gv('t-bonusAchieved'),
+      incident: gv('t-incident'),
+      notes: gv('t-notes'),
+      savedAt: new Date().toISOString()
+    };
+  }
+
+  function fillTripForm(t){
+    document.getElementById('t-jobCode').value = t.jobCode || '';
+    document.getElementById('t-jobType').value = t.jobType || '';
+    document.getElementById('t-origin').value = t.origin || '';
+    document.getElementById('t-destination').value = t.destination || '';
+    document.getElementById('t-carCount').value = (t.cars!==null && t.cars!==undefined) ? t.cars : '';
+    document.getElementById('t-trainWeight').value = (t.trainWeight!==null && t.trainWeight!==undefined) ? t.trainWeight : '';
+    document.getElementById('t-trainLength').value = (t.trainLength!==null && t.trainLength!==undefined) ? t.trainLength : '';
+    // trainValue guardado en dólares → mostramos en $ directos
+    if(t.trainValue!==null && t.trainValue!==undefined){
+      document.getElementById('t-trainValue').value = t.trainValue;
+      document.getElementById('t-trainValueUnit').value = '1';
+      document.getElementById('t-trainValueConverted').textContent = '= '+fmtMoney(t.trainValue);
+    } else {
+      document.getElementById('t-trainValue').value = '';
+      document.getElementById('t-trainValueConverted').textContent = '';
+    }
+    document.getElementById('t-requiredLicenses').value = t.requiredLicenses || '';
+    document.getElementById('t-basePayment').value = (t.basePaymentPlanned!==null && t.basePaymentPlanned!==undefined) ? t.basePaymentPlanned : '';
+    document.getElementById('t-bonusDeadlineMin').value = (t.bonusDeadlineMin!==null && t.bonusDeadlineMin!==undefined) ? t.bonusDeadlineMin : '';
+    document.getElementById('t-locomotive').value = t.locomotive || '';
+    document.getElementById('t-tripDuration').value = (t.tripDuration!==null && t.tripDuration!==undefined) ? t.tripDuration : '';
+    document.getElementById('t-distanceKm').value = (t.distanceKm!==null && t.distanceKm!==undefined) ? t.distanceKm : '';
+    document.getElementById('t-maintenanceCost').value = (t.maintenanceCost!==null && t.maintenanceCost!==undefined) ? t.maintenanceCost : '';
+    document.getElementById('t-realPayment').value = (t.realPayment!==null && t.realPayment!==undefined) ? t.realPayment : '';
+    document.getElementById('t-bonusAchieved').value = t.bonusAchieved || '';
+    document.getElementById('t-incident').value = t.incident || '';
+    document.getElementById('t-notes').value = t.notes || '';
+    updateNetDisplay();
+  }
+
+  function clearTripForm(){
+    ['t-jobCode','t-origin','t-destination','t-trainWeight','t-trainLength','t-trainValue',
+     't-requiredLicenses','t-basePayment','t-bonusDeadlineMin','t-locomotive','t-tripDuration',
+     't-distanceKm','t-maintenanceCost','t-realPayment','t-notes'].forEach(id=>{
+      const el = document.getElementById(id); if(el) el.value='';
+    });
+    document.getElementById('t-jobType').value='';
+    document.getElementById('t-bonusAchieved').value='';
+    document.getElementById('t-incident').value='';
+    document.getElementById('t-carCount').value=1;
+    document.getElementById('t-trainValueUnit').value='m';
+    document.getElementById('t-trainValueConverted').textContent='';
+    const nd = document.getElementById('netDisplay');
+    if(nd){ nd.style.display='none'; nd.textContent=''; }
+    editingTripId = null;
+    document.getElementById('trip-form-status').textContent='';
+    document.getElementById('cancelEditTrip').style.display='none';
+  }
+
+  function nowLocalISO(){ return ''; } // ya no se usa, se mantiene por compatibilidad
+
+  // ============ DATOS: ESTACIONES Y LOCOMOTORAS ============
+
+  const STATIONS = [
+    {code:'CME', name:'Coal Mine East', es:'Mina de Carbón Este'},
+    {code:'CMS', name:'Coal Mine South', es:'Mina de Carbón Sur'},
+    {code:'CP',  name:'Coal Power Plant', es:'Central Eléctrica de Carbón'},
+    {code:'CS',  name:'City South', es:'Ciudad Sur'},
+    {code:'CW',  name:'City West', es:'Ciudad Oeste'},
+    {code:'FF',  name:'Food Factory & Town', es:'Fábrica de Alimentos y Pueblo'},
+    {code:'FM',  name:'Farm', es:'Granja'},
+    {code:'FRC', name:'Forest Central', es:'Bosque Central'},
+    {code:'FRS', name:'Forest South', es:'Bosque Sur'},
+    {code:'GF',  name:'Goods Factory & Town', es:'Fábrica de Bienes y Pueblo'},
+    {code:'HB',  name:'Harbor & Town', es:'Puerto y Pueblo'},
+    {code:'IME', name:'Iron Ore Mine East', es:'Mina de Hierro Este'},
+    {code:'IMW', name:'Iron Ore Mine West', es:'Mina de Hierro Oeste'},
+    {code:'MB',  name:'Military Base', es:'Base Militar'},
+    {code:'MF',  name:'Machine Factory', es:'Fábrica de Maquinaria'},
+    {code:'OR',  name:'Oil Refinery', es:'Refinería de Petróleo'},
+    {code:'OWC', name:'Oil Well Central', es:'Pozo de Petróleo Central'},
+    {code:'OWN', name:'Oil Well North', es:'Pozo de Petróleo Norte'},
+    {code:'SM',  name:'Steel Mill', es:'Acería'},
+    {code:'SW',  name:'Sawmill', es:'Aserradero'},
+  ];
+
+  const LOCOS = [
+    {code:'DE2',      name:'DE2 Shunter',          es:'Diesel-Eléctrico · maniobras · hasta 400t'},
+    {code:'DE6',      name:'DE6',                  es:'Diesel-Eléctrico · línea · hasta 1400t'},
+    {code:'DE6-Slug', name:'DE6 Slug',              es:'Cabless slug para MU con DE6'},
+    {code:'DH4',      name:'DH4 Diesel Road-Switcher', es:'Diesel-Hidráulico · 4 ejes'},
+    {code:'DM3',      name:'DM3 Diesel Shunter',   es:'Diesel-Mecánico · maniobras · 3 ejes'},
+    {code:'S060',     name:'S060 Steam Shunter',   es:'Vapor · maniobras · 0-6-0'},
+    {code:'S282',     name:'S282',                 es:'Vapor · línea · 2-8-2 · hasta 1000t'},
+    {code:'BE2',      name:'BE2',                  es:'Eléctrico · 2 ejes'},
+    {code:'DM1U-150', name:'DM1U-150',             es:'Diesel-Mecánico · locomotora de trabajo'},
+  ];
+
+  // ============ MOTOR DE AUTOCOMPLETE ============
+
+  function normalizeAC(s){ return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+
+  function buildACList(inputId, listId, items, getCode, getName, getSub){
+    const inp = document.getElementById(inputId);
+    const list = document.getElementById(listId);
+    if(!inp || !list) return;
+    let activeIdx = -1;
+
+    function filterItems(q){
+      if(!q) return items;
+      const nq = normalizeAC(q);
+      return items.filter(it=>
+        normalizeAC(getCode(it)).includes(nq) ||
+        normalizeAC(getName(it)).includes(nq) ||
+        (getSub && normalizeAC(getSub(it)).includes(nq))
+      );
+    }
+
+    function renderList(filtered){
+      list.innerHTML='';
+      if(!filtered.length){ list.classList.remove('open'); return; }
+      filtered.slice(0,12).forEach((it,i)=>{
+        const div = document.createElement('div');
+        div.className='autocomplete-item';
+        div.innerHTML='<span class="ac-code">'+getCode(it)+'</span>'+getName(it)+
+          (getSub ? '<span class="ac-sub">'+getSub(it)+'</span>' : '');
+        div.addEventListener('mousedown', e=>{ e.preventDefault(); selectItem(it); });
+        list.appendChild(div);
+      });
+      activeIdx=-1;
+      list.classList.add('open');
+    }
+
+    function selectItem(it){
+      inp.value = getCode(it) + ' — ' + getName(it);
+      list.classList.remove('open');
+      activeIdx=-1;
+    }
+
+    inp.addEventListener('input', ()=>{ renderList(filterItems(inp.value.split('—')[0].trim())); });
+    inp.addEventListener('focus', ()=>{ if(inp.value) renderList(filterItems(inp.value.split('—')[0].trim())); else renderList(items); });
+    inp.addEventListener('blur', ()=>{ setTimeout(()=>list.classList.remove('open'),150); });
+
+    inp.addEventListener('keydown', e=>{
+      const divs = list.querySelectorAll('.autocomplete-item');
+      if(e.key==='ArrowDown'){ e.preventDefault(); activeIdx=Math.min(activeIdx+1,divs.length-1); divs.forEach((d,i)=>d.classList.toggle('active',i===activeIdx)); }
+      else if(e.key==='ArrowUp'){ e.preventDefault(); activeIdx=Math.max(activeIdx-1,-1); divs.forEach((d,i)=>d.classList.toggle('active',i===activeIdx)); }
+      else if(e.key==='Enter' && activeIdx>=0){ e.preventDefault(); divs[activeIdx].dispatchEvent(new MouseEvent('mousedown')); }
+      else if(e.key==='Escape'){ list.classList.remove('open'); }
+    });
+  }
+
+  // ============ VALOR DEL TREN EN MILLONES ============
+
+  function trainValueInDollars(inputId, unitId){
+    const v = parseFloat(document.getElementById(inputId).value);
+    const u = document.getElementById(unitId).value;
+    if(isNaN(v)) return null;
+    if(u==='m') return Math.round(v*1e6);
+    if(u==='k') return Math.round(v*1e3);
+    return Math.round(v);
+  }
+
+  function setupTrainValuePreview(inputId, unitId, previewId){
+    function update(){
+      const dollars = trainValueInDollars(inputId, unitId);
+      const el = document.getElementById(previewId);
+      if(dollars!==null) el.textContent='= '+fmtMoney(dollars);
+      else el.textContent='';
+    }
+    document.getElementById(inputId).addEventListener('input', update);
+    document.getElementById(unitId).addEventListener('change', update);
+  }
+
+  // ============ NETO COLOREADO ============
+
+  function updateNetDisplay(){
+    const maint = parseFloat(document.getElementById('t-maintenanceCost').value) || 0;
+    const pay   = parseFloat(document.getElementById('t-realPayment').value);
+    const el    = document.getElementById('netDisplay');
+    if(isNaN(pay)){ el.style.display='none'; return; }
+    const net = pay - maint;
+    el.style.display='block';
+    el.className = 'net-display ' + (net>=0 ? 'positive' : 'negative');
+    el.textContent = 'Neto real: ' + (net>=0?'+':'') + fmtMoney(net);
+  }
+  document.getElementById('t-maintenanceCost').addEventListener('input', updateNetDisplay);
+  document.getElementById('t-realPayment').addEventListener('input', updateNetDisplay);
+
+  document.getElementById('saveTrip').addEventListener('click', async ()=>{
+    const entry = readTripForm();
+    if(editingTripId){
+      const idx = trips.findIndex(t=>t.id===editingTripId);
+      if(idx>=0) trips[idx]=entry; else trips.push(entry);
+    } else {
+      trips.push(entry);
+    }
+    await saveTrips();
+    clearTripForm();
+    renderTrips();
+  });
+
+  document.getElementById('cancelEditTrip').addEventListener('click', clearTripForm);
+
+  /* ---- Modal de información completa del viaje ---- */
+
+  function iv(label, value){
+    const v = (value===null||value===undefined||value==='') ? '—' : value;
+    return '<div class="info-row"><span class="info-label">'+label+'</span><span class="info-value">'+v+'</span></div>';
+  }
+
+  function renderTripInfoHTML(t, m){
+    let html = '';
+
+    html += '<div class="info-section"><h4>Datos del pedido</h4>';
+    html += iv('Código', escHtml(t.jobCode));
+    html += iv('Tipo', jobTypeLabel(t.jobType));
+    html += iv('Origen', escHtml(t.origin));
+    html += iv('Destino', escHtml(t.destination));
+    html += iv('Vagones', t.cars);
+    html += iv('Peso del tren', (t.trainWeight!==null && t.trainWeight!==undefined) ? t.trainWeight+' t' : null);
+    html += iv('Largo del tren', (t.trainLength!==null && t.trainLength!==undefined) ? t.trainLength+' m' : null);
+    html += iv('Valor del tren', (t.trainValue!==null && t.trainValue!==undefined) ? fmtMoney(t.trainValue) : null);
+    html += iv('Licencias requeridas', escHtml(t.requiredLicenses));
+    html += iv('Pago base planeado', (t.basePaymentPlanned!==null && t.basePaymentPlanned!==undefined) ? fmtMoney(t.basePaymentPlanned) : null);
+    html += iv('Plazo de bono', (t.bonusDeadlineMin!==null && t.bonusDeadlineMin!==undefined) ? t.bonusDeadlineMin+' min' : null);
+    html += '</div>';
+
+    html += '<div class="info-section"><h4>Datos reales del viaje</h4>';
+    html += iv('Locomotora', escHtml(t.locomotive));
+    html += iv('Distancia recorrida', (t.distanceKm!==null && t.distanceKm!==undefined) ? t.distanceKm+' km' : null);
+    html += iv('Tiempo transcurrido', (m.duration!==null) ? fmtDuration(m.duration) : null);
+    html += iv('Mantenimiento total', (t.maintenanceCost!==null && t.maintenanceCost!==undefined) ? fmtMoney(t.maintenanceCost) : null);
+    html += iv('Pago real recibido', (t.realPayment!==null && t.realPayment!==undefined) ? fmtMoney(t.realPayment) : null);
+    html += iv('¿Bono logrado?', bonusLabel(t.bonusAchieved));
+    html += iv('Incidente', incidentLabel(t.incident));
+    html += '</div>';
+
+    html += '<div class="info-section"><h4>Resultados calculados</h4>';
+    html += iv('Pago neto', (m.net!==null) ? fmtMoney(m.net) : null);
+    html += iv('$ / hora', (m.perHour!==null) ? fmtMoney(m.perHour) : null);
+    html += iv('$ / km', (m.perKm!==null) ? fmtMoney(m.perKm) : null);
+    html += iv('$ / vagón', (m.perCar!==null) ? fmtMoney(m.perCar) : null);
+    if(t.realPayment!==null && t.realPayment!==undefined && t.basePaymentPlanned!==null && t.basePaymentPlanned!==undefined){
+      const diff = t.realPayment - t.basePaymentPlanned;
+      html += iv('Real vs. plan', (diff>=0?'+':'')+fmtMoney(diff));
+    }
+    html += '</div>';
+
+    if(t.notes){
+      html += '<div class="info-section"><h4>Notas</h4><div class="info-notes">'+escHtml(t.notes)+'</div></div>';
+    }
+
+    html += '<div class="info-section"><h4>Metadatos</h4>';
+    html += iv('Guardado el', t.savedAt ? new Date(t.savedAt).toLocaleString('es-CO') : null);
+    html += iv('ID interno', escHtml(t.id));
+    html += '</div>';
+
+    return html;
+  }
+
+  function openTripInfo(id){
+    const t = trips.find(x=>x.id===id);
+    if(!t) return;
+    const m = computeTripMetrics(t);
+    document.getElementById('modal-body').innerHTML = renderTripInfoHTML(t, m);
+    document.getElementById('tripInfoModal').classList.add('open');
+  }
+  function closeTripInfo(){
+    document.getElementById('tripInfoModal').classList.remove('open');
+  }
+  document.getElementById('modalCloseBtn').addEventListener('click', closeTripInfo);
+  document.getElementById('tripInfoModal').addEventListener('click', (e)=>{
+    if(e.target.id==='tripInfoModal') closeTripInfo();
+  });
+  document.addEventListener('keydown', (e)=>{
+    if(e.key==='Escape') closeTripInfo();
+  });
+
+  function tripCalloutHTML(x){
+    const t = x.t, m = x.m;
+    const diff = (t.realPayment!==null && t.realPayment!==undefined && t.basePaymentPlanned!==null && t.basePaymentPlanned!==undefined)
+      ? (t.realPayment - t.basePaymentPlanned) : null;
+    let html = '<div class="trip-route">'+(t.origin||'?')+' → '+(t.destination||'?')+(t.jobCode?(' · '+t.jobCode):'')+'</div>';
+    html += '<div class="callout-row"><span>$ / hora real</span><span>'+fmtMoney(m.perHour)+'</span></div>';
+    html += '<div class="callout-row"><span>Pago neto</span><span>'+fmtMoney(m.net)+'</span></div>';
+    html += '<div class="callout-row"><span>Duración</span><span>'+fmtDuration(m.duration)+'</span></div>';
+    html += '<div class="callout-row"><span>Locomotora</span><span>'+(t.locomotive||'—')+'</span></div>';
+    if(diff!==null){
+      html += '<div class="callout-row"><span>Real vs. papel</span><span>'+(diff>=0?'+':'')+fmtMoney(diff)+'</span></div>';
+    }
+    return html;
+  }
+
+  function renderTrips(){
+    const tbody = document.getElementById('trip-body');
+    tbody.innerHTML = '';
+    const sorted = [...trips].sort((a,b)=> (b.savedAt||'').localeCompare(a.savedAt||''));
+
+    sorted.forEach(t=>{
+      const m = computeTripMetrics(t);
+      const tr = document.createElement('tr');
+      const isDone = ((t.tripDuration!==null && t.tripDuration!==undefined) || !!t.endTime) && t.realPayment !== null && t.realPayment !== undefined;
+      const statusHTML = '<span class="status-pill '+(isDone?'done':'pending')+'">'+(isDone?'Completado':'En curso')+'</span>';
+
+      tr.innerHTML =
+        '<td>'+(m.duration!==null ? fmtDuration(m.duration) : '—')+'</td>'+
+        '<td>'+(t.jobCode||'—')+'<br><span class="trip-route">'+(t.origin||'?')+' → '+(t.destination||'?')+'</span></td>'+
+        '<td>'+jobTypeLabel(t.jobType)+'</td>'+
+        '<td>'+statusHTML+'</td>'+
+        '<td>'+(m.perHour!==null ? fmtMoney(m.perHour) : '—')+'</td>'+
+        '<td>'+bonusLabel(t.bonusAchieved)+'</td>'+
+        '<td><div class="trip-actions"></div></td>';
+
+      const actionsTd = tr.querySelector('.trip-actions');
+
+      if(isDone){
+        const infoBtn = document.createElement('button');
+        infoBtn.className='remove-row'; infoBtn.style.color='var(--ink-dim)';
+        infoBtn.textContent='👁'; infoBtn.title='Ver información completa';
+        infoBtn.addEventListener('click', ()=> openTripInfo(t.id));
+        actionsTd.appendChild(infoBtn);
+      }
+
+      const editBtn = document.createElement('button');
+      editBtn.className='remove-row'; editBtn.style.color='var(--amber)';
+      editBtn.textContent='✎'; editBtn.title='Editar';
+      editBtn.addEventListener('click', ()=>{
+        editingTripId = t.id;
+        fillTripForm(t);
+        document.getElementById('trip-form-status').textContent = 'Editando viaje guardado — al guardar se actualizará.';
+        document.getElementById('cancelEditTrip').style.display='inline-block';
+        document.getElementById('bitacora-form-anchor').scrollIntoView({behavior:'smooth', block:'start'});
+      });
+      const delBtn = document.createElement('button');
+      delBtn.className='remove-row'; delBtn.textContent='✕'; delBtn.title='Eliminar';
+      delBtn.addEventListener('click', async ()=>{
+        if(!confirm('¿Eliminar este viaje del historial? No se puede deshacer.')) return;
+        trips = trips.filter(x=>x.id!==t.id);
+        await saveTrips();
+        renderTrips();
+      });
+      actionsTd.appendChild(editBtn);
+      actionsTd.appendChild(delBtn);
+      tbody.appendChild(tr);
+    });
+
+    renderTripStats();
+  }
+
+  function renderTripStats(){
+    const withMetrics = trips.map(t=>({t, m:computeTripMetrics(t)}));
+    const completed = withMetrics.filter(x=>x.m.perHour!==null);
+
+    document.getElementById('stat-total-trips').textContent = trips.length;
+
+    const totalHours = withMetrics.reduce((a,x)=> a + (x.m.duration ? x.m.duration/60 : 0), 0);
+    document.getElementById('stat-total-hours').textContent = totalHours.toFixed(1)+'h';
+
+    const totalNet = withMetrics.reduce((a,x)=> a + (x.m.net || 0), 0);
+    document.getElementById('stat-total-net').textContent = fmtMoney(totalNet);
+
+    document.getElementById('stat-avg-hour').textContent = completed.length
+      ? fmtMoney(completed.reduce((a,x)=>a+x.m.perHour,0)/completed.length) : '—';
+
+    const withKm = withMetrics.filter(x=>x.m.perKm!==null);
+    document.getElementById('stat-avg-km').textContent = withKm.length
+      ? fmtMoney(withKm.reduce((a,x)=>a+x.m.perKm,0)/withKm.length) : '—';
+
+    const withBonusInfo = trips.filter(t=>t.bonusAchieved==='si'||t.bonusAchieved==='no');
+    const bonusYes = trips.filter(t=>t.bonusAchieved==='si').length;
+    document.getElementById('stat-bonus-rate').textContent = withBonusInfo.length
+      ? Math.round(100*bonusYes/withBonusInfo.length)+'%' : '—';
+
+    const totalCars = trips.reduce((a,t)=>a+(t.cars||0),0);
+    document.getElementById('stat-total-cars').textContent = totalCars;
+
+    const bestBox = document.getElementById('best-trip');
+    const worstBox = document.getElementById('worst-trip');
+    if(completed.length>0){
+      const best = completed.reduce((a,b)=> b.m.perHour>a.m.perHour ? b : a);
+      bestBox.innerHTML = tripCalloutHTML(best);
+      if(completed.length>1){
+        const worst = completed.reduce((a,b)=> b.m.perHour<a.m.perHour ? b : a);
+        worstBox.innerHTML = tripCalloutHTML(worst);
+      } else {
+        worstBox.innerHTML = '<p class="callout-empty">Necesitas al menos 2 viajes completados para comparar.</p>';
+      }
+    } else {
+      bestBox.innerHTML = '<p class="callout-empty">Aún no hay viajes completados con pago y duración registrados.</p>';
+      worstBox.innerHTML = '<p class="callout-empty">Aún no hay suficientes datos.</p>';
+    }
+  }
+
+  // sendToBitacora eliminado en v1.6.1 — el evaluador ya no tiene esos campos
+
+  /* ============ PESTAÑAS ============ */
+
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  const tabPanels = document.querySelectorAll('.tab-panel');
+
+  function setActiveTab(name){
+    tabButtons.forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+    tabPanels.forEach(p=>p.classList.toggle('active', p.dataset.panel===name));
+    try{ localStorage.setItem(TAB_KEY, name); }catch(e){}
+  }
+
+  tabButtons.forEach(b=>{
+    b.addEventListener('click', ()=> setActiveTab(b.dataset.tab));
+  });
+
+  async function loadActiveTab(){
+    let name = 'evaluador';
+    try{
+      const raw = localStorage.getItem(TAB_KEY);
+      if(raw) name = raw;
+    }catch(e){}
+    setActiveTab(name);
+  }
+
+  /* ============ COPIA DE SEGURIDAD ============ */
+
+  document.getElementById('exportBackup').addEventListener('click', ()=>{
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      tool: "Teb's Derail Valley Tool",
+      version: '1.8.0',
+      licenses: state,
+      targetRate: gv('targetRate'),
+      trips: trips
+    };
+    const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'derail-valley-backup-'+new Date().toISOString().slice(0,10)+'.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('importBackupFile').addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = async (evt)=>{
+      try{
+        const payload = JSON.parse(evt.target.result);
+        if(Array.isArray(payload.licenses)) state = payload.licenses;
+        if(Array.isArray(payload.trips)) trips = payload.trips;
+        if(payload.targetRate){
+          document.getElementById('targetRate').value = payload.targetRate;
+          try{ localStorage.setItem(TARGET_KEY, payload.targetRate); }catch(err){}
+        }
+        await saveState();
+        await saveTrips();
+        localStorage.setItem(SYNC_TS_KEY, new Date().toISOString());
+        renderLicenses();
+        renderTrips();
+        alert('Copia de seguridad importada correctamente.');
+      }catch(err){
+        alert('No se pudo leer el archivo. ¿Es un JSON exportado por esta misma herramienta?');
+      }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  /* ============ INIT ============ */
+
+
+  // ============ CAZADOR DE DEMONSTRATORS ============
+
+  const MUSEUM_LOCOS = ['DE2','DE6','DH4','DM3','S060','S282'];
+
+  const MUSEUM_STATIONS = [
+    {id:'CME',name:'Coal Mine East — Mina de Carbón Este',points:[
+      'Detrás del edificio verde (Behind Green Building)',
+      'En la cima de la mina de carbón (At top of coal mine)'
+    ]},
+    {id:'CMS',name:'Coal Mine South — Mina de Carbón Sur',points:[
+      'Detrás del edificio rojo al sur de la oficina (Behind red building south of office)',
+      'En A2L detrás de la oficina de la estación (On A2L Behind Station Office)'
+    ]},
+    {id:'CP',name:'Coal Power Plant — Central Eléctrica de Carbón',points:[
+      'Junto a A1S (By A1S)',
+      'En el galpón junto a A4S (In the shed by A4S)',
+      'Junto a los switches al SE del Dispatch (By Switches SE of Dispatch)',
+      'En el galpón junto al agua y carbón (In Shed By water and coal refill)',
+      'Junto al punto de agua y carbón (By coal and water refill)',
+      'Al lado del galpón junto a A4S (Next to shed by A4S)'
+    ]},
+    {id:'CS',name:'City South — Ciudad Sur',points:[
+      'Junto al museo (Next to the museum)',
+      'Junto a la estación (By Station)'
+    ]},
+    {id:'CW',name:'City West — Ciudad Oeste',points:[
+      'Detrás de chatarra junto a la estación (Behind scrap by Station)',
+      'En la plaza junto a la estación (Plaza by Station)',
+      'Junto a C6L detrás de chatarra en arbusto (By C6L behind scrap in bush)',
+      'En la salida este del río (In River East Exit)',
+      'En la zanja entre CW y OWC (In the ditch between CW and OWC)'
+    ]},
+    {id:'FF',name:'Food Factory & Town — Fábrica de Alimentos y Pueblo',points:[
+      'Junto al galpón de servicio (By Service shed)',
+      'Junto a D1L detrás de chatarra (By D1L Behind Scrap)',
+      'Junto al spawn de locomotoras (By Loco spawn)',
+      'Junto a la estación (By station)',
+      'Entre edificios al oeste del patio C (Between buildings west of C Yard)'
+    ]},
+    {id:'FM',name:'Farm — Granja',points:[
+      'Junto a los silos (By silos)'
+    ]},
+    {id:'FRC',name:'Forest Central — Bosque Central',points:[
+      'Junto al spawn de locomotoras (By Loco spawn)'
+    ]},
+    {id:'FRS',name:'Forest South — Bosque Sur',points:[
+      'Junto a B1L (By B1L)'
+    ]},
+    {id:'GF',name:'Goods Factory & Town — Fábrica de Bienes y Pueblo',points:[
+      'En el galpón 1 junto al spawn de locomotoras (In shed by loco spawn)',
+      'En el galpón 2 junto al spawn de locomotoras (In shed 2 by loco spawn)',
+      'Al norte del desvío A2/3S (North of A2/3S Switchoff)',
+      'Detrás del muro junto a la estación (Behind wall by station)',
+      'En la zanja al sur del patio D (Ditch south of D yard)'
+    ]},
+    {id:'HB',name:'Harbour & Town — Puerto y Pueblo',points:[
+      'Junto al roundhouse (By the round house)',
+      'Detrás del muro entre la estación y G, extremo sur (Behind wall Between Station and G at south end)',
+      'Junto a la vía de spawn de locomotoras (Next to loco spawn track)',
+      'Detrás de la tienda (Behind Shop)',
+      'Extremo lejano de la estación (Far End of station)',
+      'En el galpón entre D y G (In shed between D and G)',
+      'Junto a G1S (Next to G1S)'
+    ]},
+    {id:'IME',name:'Iron Ore Mine East — Mina de Hierro Este',points:[
+      'Detrás de los contenedores verdes (Behind Green Containers)'
+    ]},
+    {id:'IMW',name:'Iron Ore Mine West — Mina de Hierro Oeste',points:[
+      'Junto a la carretera al sureste de la oficina (By the road southeast of Station Office)',
+      'Al norte de la oficina detrás del galpón (North of station office behind shed)',
+      'Detrás del edificio rojo (Behind Red Building)'
+    ]},
+    {id:'MF',name:'Machine Factory & Town — Fábrica de Maquinaria y Pueblo',points:[
+      'Junto al roundhouse — dos puntos de spawn posibles (By round house, 2 spawn points)',
+      'Escondida junto al roundhouse (Hidden By Roundhouse)'
+    ]},
+    {id:'OR',name:'Oil Refinery — Refinería de Petróleo',points:[
+      'Junto a B7S (By B7S)',
+      'Junto a A6S (Next to A6S)',
+      'Junto a A3S (By A3S)',
+      'Junto a A4S (By A4S)'
+    ]},
+    {id:'OWC',name:'Oil Well Central — Pozo de Petróleo Central',points:[
+      'Junto a A1L (By A1L)'
+    ]},
+    {id:'OWN',name:'Oil Well North — Pozo de Petróleo Norte',points:[
+      'Junto al galpón de servicio (Next to service Shed)'
+    ]},
+    {id:'SM',name:'Steel Mill — Acería',points:[
+      'Detrás de chatarra al sur de la oficina — 2 puntos de spawn posibles (Behind Scrap South of Station Office)',
+      'Junto al galpón de servicio (By Service shed)',
+      'Junto a A4S (Next to A4S)',
+      'Junto a A6I (Next to A6I)',
+      'Junto a A3S (By A3S)'
+    ]},
+    {id:'SW',name:'Sawmill — Aserradero',points:[
+      'En el galpón frente al Dispatch (In shed opposite Dispatch)'
+    ]}
+  ];
+
+  const MUSEUM_KEY = 'dv-museum-tracker';
+  let museumState = [];
+
+  function initMuseumState(){
+    let total = 0;
+    MUSEUM_STATIONS.forEach(s => total += s.points.length);
+    museumState = Array.from({length:total}, () => ({status:'unvisited', loco:null}));
+  }
+
+  function flatMuseumIdx(si, pi){
+    let idx = 0;
+    for(let i=0; i<si; i++) idx += MUSEUM_STATIONS[i].points.length;
+    return idx + pi;
+  }
+
+  async function loadMuseumState(){
+    try{
+      const raw = localStorage.getItem(MUSEUM_KEY);
+      if(raw){
+        const saved = JSON.parse(raw);
+        initMuseumState();
+        if(Array.isArray(saved) && saved.length === museumState.length) museumState = saved;
+        return;
+      }
+    }catch(e){}
+    initMuseumState();
+  }
+
+  function saveMuseumState(){
+    try{ localStorage.setItem(MUSEUM_KEY, JSON.stringify(museumState)); }catch(e){}
+    pushToCloud(true);
+  }
+
+  function getAssignedLocos(){
+    return new Set(museumState.filter(s=>s.loco).map(s=>s.loco));
+  }
+
+  function getAvailableLocos(currentLoco){
+    const assigned = getAssignedLocos();
+    return MUSEUM_LOCOS.filter(l => l===currentLoco || !assigned.has(l));
+  }
+
+  function renderMuseumTracker(){
+    const container = document.getElementById('museum-tracker-body');
+    if(!container) return;
+
+    const totalPoints = museumState.length;
+    const reviewed = museumState.filter(s=>s.status!=='unvisited').length;
+    const found = museumState.filter(s=>s.status==='found').length;
+
+    document.getElementById('museum-stat-found').textContent = found+'/6';
+    document.getElementById('museum-stat-reviewed').textContent = reviewed+'/'+totalPoints;
+    document.getElementById('museum-stat-pending').textContent = (totalPoints-reviewed);
+
+    container.innerHTML = '';
+
+    MUSEUM_STATIONS.forEach((station, si) => {
+      const sec = document.createElement('div');
+      sec.className = 'museum-station';
+
+      const stReviewed = station.points.filter((_,pi)=>museumState[flatMuseumIdx(si,pi)].status!=='unvisited').length;
+      const stFound    = station.points.filter((_,pi)=>museumState[flatMuseumIdx(si,pi)].status==='found').length;
+
+      let badge = '';
+      if(stFound>0)                         badge='<span class="museum-station-badge found">🚂 Encontrada</span>';
+      else if(stReviewed===station.points.length) badge='<span class="museum-station-badge done">✓ Toda revisada</span>';
+
+      sec.innerHTML = '<div class="museum-station-header">'
+        +'<span class="museum-station-code">'+station.id+'</span>'
+        +'<span class="museum-station-name">'+station.name+'</span>'
+        +badge
+        +'<span class="museum-station-progress">'+stReviewed+'/'+station.points.length+'</span>'
+        +'</div>';
+
+      station.points.forEach((point, pi) => {
+        const idx = flatMuseumIdx(si, pi);
+        const s   = museumState[idx];
+
+        const row = document.createElement('div');
+        row.className = 'museum-point' + (s.status==='empty'?' state-empty':s.status==='found'?' state-found':'');
+
+        const btn = document.createElement('button');
+        btn.className = 'museum-status-btn';
+        btn.title = s.status==='unvisited' ? 'Sin revisar — clic para marcar revisado vacío'
+                  : s.status==='empty'     ? 'Vacío — clic para marcar loco encontrada'
+                                           : 'Encontrada — clic para resetear';
+        btn.textContent = s.status==='unvisited' ? '⬜' : s.status==='empty' ? '✗' : '🚂';
+        btn.addEventListener('click', ()=>{
+          if(s.status==='unvisited')      s.status='empty';
+          else if(s.status==='empty')     s.status='found';
+          else { s.status='unvisited'; s.loco=null; }
+          saveMuseumState(); renderMuseumTracker();
+        });
+
+        const desc = document.createElement('span');
+        desc.className = 'museum-point-desc';
+        desc.textContent = (pi+1)+'. '+point;
+
+        row.appendChild(btn);
+        row.appendChild(desc);
+
+        if(s.status==='found'){
+          const sel = document.createElement('select');
+          sel.className = 'museum-loco-sel';
+          const emptyOpt = document.createElement('option');
+          emptyOpt.value=''; emptyOpt.textContent='— ¿Cuál loco? —';
+          sel.appendChild(emptyOpt);
+          getAvailableLocos(s.loco).forEach(l=>{
+            const opt = document.createElement('option');
+            opt.value=l; opt.textContent=l;
+            if(l===s.loco) opt.selected=true;
+            sel.appendChild(opt);
+          });
+          sel.addEventListener('change', ()=>{ s.loco=sel.value||null; saveMuseumState(); renderMuseumTracker(); });
+          row.appendChild(sel);
+        }
+
+        sec.appendChild(row);
+      });
+
+      container.appendChild(sec);
+    });
+
+    // Resumen de encontradas
+    const foundEntries = [];
+    MUSEUM_STATIONS.forEach((station,si)=>{
+      station.points.forEach((point,pi)=>{
+        const s = museumState[flatMuseumIdx(si,pi)];
+        if(s.status==='found') foundEntries.push({loco:s.loco, station:station.id, point:(pi+1)+'. '+point});
+      });
+    });
+    const summaryEl = document.getElementById('museum-found-summary');
+    const listEl    = document.getElementById('museum-found-list');
+    if(foundEntries.length>0){
+      summaryEl.style.display='block';
+      listEl.innerHTML = foundEntries.map(e=>
+        '<div class="museum-found-row">'
+        +'<span class="mfr-loco">'+(e.loco||'Sin asignar')+'</span>'
+        +'<span class="mfr-loc">'+e.station+' — '+e.point+'</span>'
+        +'</div>'
+      ).join('');
+    } else {
+      summaryEl.style.display='none';
+    }
+  }
+
+  document.getElementById('museumResetBtn').addEventListener('click',()=>{
+    if(!confirm('¿Reiniciar el tracker? Se perderán todos los estados marcados.')) return;
+    initMuseumState(); saveMuseumState(); renderMuseumTracker();
+  });
+
+
+  // ============ SINCRONIZACIÓN JSONBIN ============
+
+  const SYNC_KEY       = 'dv-sync-config';
+  const SYNC_TS_KEY    = 'dv-sync-last-ts';
+  const JSONBIN_BASE   = 'https://api.jsonbin.io/v3';
+
+  let syncConfig = {apiKey:'', binId:''};
+  let syncInProgress = false;
+
+  function loadSyncConfig(){
+    try{
+      const raw = localStorage.getItem(SYNC_KEY);
+      if(raw) syncConfig = JSON.parse(raw);
+    }catch(e){}
+    document.getElementById('syncApiKey').value = syncConfig.apiKey || '';
+    document.getElementById('syncBinId').value  = syncConfig.binId  || '';
+  }
+
+  function saveSyncConfig(){
+    syncConfig.apiKey = document.getElementById('syncApiKey').value.trim();
+    syncConfig.binId  = document.getElementById('syncBinId').value.trim();
+    localStorage.setItem(SYNC_KEY, JSON.stringify(syncConfig));
+  }
+
+  function syncReady(){ return !!(syncConfig.apiKey && syncConfig.binId); }
+
+  function setSyncStatus(msg, type){
+    const el = document.getElementById('syncStatus');
+    el.style.display = msg ? 'inline-block' : 'none';
+    el.className = 'sync-status ' + (type||'');
+    el.textContent = msg;
+  }
+
+  function buildPayload(){
+    return {
+      licenses:    state,
+      trips:       trips,
+      targetRate:  document.getElementById('targetRate').value,
+      museumState: museumState,
+      lastUpdated: new Date().toISOString()
+    };
+  }
+
+  async function pushToCloud(silent){
+    if(!syncReady() || syncInProgress) return;
+    syncInProgress = true;
+    if(!silent) setSyncStatus('☁ Subiendo…', 'loading');
+    try{
+      const res = await fetch(JSONBIN_BASE+'/b/'+syncConfig.binId, {
+        method:'PUT',
+        headers:{'Content-Type':'application/json','X-Access-Key':syncConfig.apiKey},
+        body: JSON.stringify(buildPayload())
+      });
+      if(!res.ok) throw new Error(res.status);
+      const ts = new Date().toISOString();
+      localStorage.setItem(SYNC_TS_KEY, ts);
+      if(!silent) setSyncStatus('✓ Sincronizado', 'ok');
+      saveIndicator.textContent = 'guardado y sincronizado ✓';
+    }catch(e){
+      if(!silent) setSyncStatus('✗ Error al subir: '+e.message, 'err');
+      saveIndicator.textContent = 'guardado local (fallo sync)';
+    }
+    syncInProgress = false;
+  }
+
+  async function pullFromCloud(){
+    if(!syncReady()) return false;
+    setSyncStatus('☁ Descargando…', 'loading');
+    try{
+      const res = await fetch(JSONBIN_BASE+'/b/'+syncConfig.binId+'/latest', {
+        headers:{'X-Access-Key':syncConfig.apiKey}
+      });
+      if(!res.ok) throw new Error(res.status);
+      const data = await res.json();
+      const cloud = data.record;
+      if(!cloud) throw new Error('bin vacío');
+
+      const cloudTs = cloud.lastUpdated ? new Date(cloud.lastUpdated).getTime() : 0;
+      const localTs = new Date(localStorage.getItem(SYNC_TS_KEY)||0).getTime();
+
+      if(cloudTs > localTs){
+        // La nube es más nueva — aplicar
+        if(Array.isArray(cloud.licenses))    { state = cloud.licenses; localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+        if(Array.isArray(cloud.trips))       { trips = cloud.trips;    localStorage.setItem(TRIP_KEY, JSON.stringify(trips)); }
+        if(Array.isArray(cloud.museumState)) {
+          museumState = cloud.museumState;
+          localStorage.setItem(MUSEUM_KEY, JSON.stringify(museumState));
+        }
+        if(cloud.targetRate){
+          document.getElementById('targetRate').value = cloud.targetRate;
+          localStorage.setItem(TARGET_KEY, cloud.targetRate);
+        }
+        localStorage.setItem(SYNC_TS_KEY, cloud.lastUpdated);
+        setSyncStatus('✓ Datos actualizados desde la nube', 'ok');
+        return true; // indica que hay que re-renderizar
+      } else {
+        setSyncStatus('✓ Datos locales ya son los más recientes', 'ok');
+        return false;
+      }
+    }catch(e){
+      setSyncStatus('✗ Error al descargar: '+e.message, 'err');
+      return false;
+    }
+  }
+
+  async function createBin(){
+    const apiKey = document.getElementById('syncApiKey').value.trim();
+    if(!apiKey){ setSyncStatus('✗ Necesitas el API Key primero', 'err'); return; }
+    setSyncStatus('☁ Creando bin…', 'loading');
+    try{
+      const res = await fetch(JSONBIN_BASE+'/b', {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'X-Access-Key': apiKey,
+          'X-Bin-Name': "Teb's DV Tool",
+          'X-Bin-Private':'true'
+        },
+        body: JSON.stringify(buildPayload())
+      });
+      if(!res.ok) throw new Error(res.status);
+      const data = await res.json();
+      const binId = data.metadata.id;
+      document.getElementById('syncBinId').value = binId;
+      syncConfig.apiKey = apiKey;
+      syncConfig.binId  = binId;
+      localStorage.setItem(SYNC_KEY, JSON.stringify(syncConfig));
+      localStorage.setItem(SYNC_TS_KEY, new Date().toISOString());
+      setSyncStatus('✓ Bin creado y datos subidos · ID: '+binId, 'ok');
+    }catch(e){
+      setSyncStatus('✗ Error al crear bin: '+e.message, 'err');
+    }
+  }
+
+  // Listeners del panel sync
+  document.getElementById('syncToggle').addEventListener('click', ()=>{
+    const body = document.getElementById('syncBody');
+    const arrow = document.getElementById('syncToggleArrow');
+    const open = body.classList.toggle('open');
+    arrow.textContent = open ? '▴' : '▾';
+  });
+
+  document.getElementById('syncConnectBtn').addEventListener('click', async ()=>{
+    saveSyncConfig();
+    if(!syncReady()){ setSyncStatus('✗ Completa API Key y Bin ID', 'err'); return; }
+    const rerender = await pullFromCloud();
+    if(rerender){ renderLicenses(); renderTrips(); renderMuseumTracker(); }
+  });
+
+  document.getElementById('syncCreateBtn').addEventListener('click', createBin);
+
+  document.getElementById('syncPushBtn').addEventListener('click', async ()=>{
+    saveSyncConfig();
+    if(!syncReady()){ setSyncStatus('✗ Configura API Key y Bin ID primero', 'err'); return; }
+    await pushToCloud(false);
+  });
+
+  document.getElementById('syncPullBtn').addEventListener('click', async ()=>{
+    saveSyncConfig();
+    if(!syncReady()){ setSyncStatus('✗ Configura API Key y Bin ID primero', 'err'); return; }
+    const rerender = await pullFromCloud();
+    if(rerender){ renderLicenses(); renderTrips(); renderMuseumTracker(); }
+  });
+
+  (async function init(){
+    await loadState();
+    renderLicenses();
+    await loadJobPrefs();
+    await loadTrips();
+    renderTrips();
+    await loadActiveTab();
+    await loadMuseumState();
+    renderMuseumTracker();
+    loadSyncConfig();
+    if(syncReady()){
+      const rerender = await pullFromCloud();
+      if(rerender){ renderLicenses(); renderTrips(); renderMuseumTracker(); }
+    }
+
+    // Autocompletes de estaciones (solo bitácora — el evaluador ya no tiene origen/destino)
+    ['t-origin','t-destination'].forEach(id=>{
+      const listId = id+'-list';
+      buildACList(id, listId, STATIONS,
+        s=>s.code,
+        s=>s.es,
+        s=>s.code+' · '+s.name
+      );
+    });
+
+    // Autocomplete de locomotoras
+    buildACList('t-locomotive','loco-list', LOCOS,
+      l=>l.code,
+      l=>l.name,
+      l=>l.es
+    );
+
+    // Preview de valor del tren en millones (solo bitácora)
+    setupTrainValuePreview('t-trainValue','t-trainValueUnit','t-trainValueConverted');
+  })();
+})();
+</script>
+</body>
+</html>
