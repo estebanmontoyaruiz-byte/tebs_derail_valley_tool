@@ -2240,24 +2240,29 @@ render();
       try{
         const raw = evt.target.result;
         const payload = JSON.parse(raw);
-        // Guardar directo a localStorage — sin llamar render para evitar errores
+        // Actualizar estado en memoria directamente
         if(Array.isArray(payload.licenses)){
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.licenses));
+          state = payload.licenses;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         }
         if(Array.isArray(payload.trips)){
-          localStorage.setItem(TRIP_KEY, JSON.stringify(payload.trips));
+          trips = payload.trips;
+          localStorage.setItem(TRIP_KEY, JSON.stringify(trips));
         }
         if(payload.targetRate){
-          try{ localStorage.setItem(TARGET_KEY, payload.targetRate); }catch(e){}
+          try{ document.getElementById('targetRate').value = payload.targetRate; localStorage.setItem(TARGET_KEY, payload.targetRate); }catch(e){}
         }
         if(Array.isArray(payload.museumState)){
-          try{ localStorage.setItem(MUSEUM_KEY, JSON.stringify(payload.museumState)); }catch(e){}
+          try{ museumState = payload.museumState; localStorage.setItem(MUSEUM_KEY, JSON.stringify(museumState)); }catch(e){}
         }
         try{ localStorage.setItem(SYNC_TS_KEY, new Date().toISOString()); }catch(e){}
-        alert('Copia de seguridad importada correctamente. La página se recargará.');
-        window.location.reload();
+        // Renderizar todo
+        try{ renderLicenses(); }catch(e){ console.error('renderLicenses error:',e); }
+        try{ renderTrips(); }catch(e){ console.error('renderTrips error:',e); alert('renderTrips falló: '+e.message); }
+        try{ renderMuseumTracker(); }catch(e){ console.error('renderMuseumTracker error:',e); }
+        alert('Copia de seguridad importada correctamente. Viajes cargados: '+trips.length);
       }catch(err){
-        alert('No se pudo leer el archivo. Error: ' + err.message);
+        alert('Error al importar: ' + err.message);
       }
       e.target.value = '';
     };
