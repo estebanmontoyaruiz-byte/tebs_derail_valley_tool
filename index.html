@@ -2092,6 +2092,97 @@ render();
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  // ============ DATOS ESTÁTICOS (restaurados de v1.8.2, sin cambios) ============
+
+  const STATIONS = [
+    {code:'CME', name:'Coal Mine East', es:'Mina de Carbón Este'},
+    {code:'CMS', name:'Coal Mine South', es:'Mina de Carbón Sur'},
+    {code:'CP',  name:'Coal Power Plant', es:'Central Eléctrica de Carbón'},
+    {code:'CS',  name:'City South', es:'Ciudad Sur'},
+    {code:'CW',  name:'City West', es:'Ciudad Oeste'},
+    {code:'FF',  name:'Food Factory & Town', es:'Fábrica de Alimentos y Pueblo'},
+    {code:'FM',  name:'Farm', es:'Granja'},
+    {code:'FRC', name:'Forest Central', es:'Bosque Central'},
+    {code:'FRS', name:'Forest South', es:'Bosque Sur'},
+    {code:'GF',  name:'Goods Factory & Town', es:'Fábrica de Bienes y Pueblo'},
+    {code:'HB',  name:'Harbor & Town', es:'Puerto y Pueblo'},
+    {code:'IME', name:'Iron Ore Mine East', es:'Mina de Hierro Este'},
+    {code:'IMW', name:'Iron Ore Mine West', es:'Mina de Hierro Oeste'},
+    {code:'MB',  name:'Military Base', es:'Base Militar'},
+    {code:'MF',  name:'Machine Factory', es:'Fábrica de Maquinaria'},
+    {code:'OR',  name:'Oil Refinery', es:'Refinería de Petróleo'},
+    {code:'OWC', name:'Oil Well Central', es:'Pozo de Petróleo Central'},
+    {code:'OWN', name:'Oil Well North', es:'Pozo de Petróleo Norte'},
+    {code:'SM',  name:'Steel Mill', es:'Acería'},
+    {code:'SW',  name:'Sawmill', es:'Aserradero'},
+  ];
+
+  const LOCOS = [
+    {code:'DE2',      name:'DE2 Shunter',          es:'Diesel-Eléctrico · maniobras · hasta 400t'},
+    {code:'DE6',      name:'DE6',                  es:'Diesel-Eléctrico · línea · hasta 1400t'},
+    {code:'DE6-Slug', name:'DE6 Slug',              es:'Cabless slug para MU con DE6'},
+    {code:'DH4',      name:'DH4 Diesel Road-Switcher', es:'Diesel-Hidráulico · 4 ejes'},
+    {code:'DM3',      name:'DM3 Diesel Shunter',   es:'Diesel-Mecánico · maniobras · 3 ejes'},
+    {code:'S060',     name:'S060 Steam Shunter',   es:'Vapor · maniobras · 0-6-0'},
+    {code:'S282',     name:'S282',                 es:'Vapor · línea · 2-8-2 · hasta 1000t'},
+    {code:'BE2',      name:'BE2',                  es:'Eléctrico · 2 ejes'},
+    {code:'DM1U-150', name:'DM1U-150',             es:'Diesel-Mecánico · locomotora de trabajo'},
+  ];
+
+  // ============ MOTOR DE AUTOCOMPLETE (restaurado de v1.8.2, sin cambios) ============
+
+  function normalizeAC(s){ return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+
+  function buildACList(inputId, listId, items, getCode, getName, getSub){
+    const inp = document.getElementById(inputId);
+    const list = document.getElementById(listId);
+    if(!inp || !list) return;
+    let activeIdx = -1;
+
+    function filterItems(q){
+      if(!q) return items;
+      const nq = normalizeAC(q);
+      return items.filter(it=>
+        normalizeAC(getCode(it)).includes(nq) ||
+        normalizeAC(getName(it)).includes(nq) ||
+        (getSub && normalizeAC(getSub(it)).includes(nq))
+      );
+    }
+
+    function renderList(filtered){
+      list.innerHTML='';
+      if(!filtered.length){ list.classList.remove('open'); return; }
+      filtered.slice(0,12).forEach((it,i)=>{
+        const div = document.createElement('div');
+        div.className='autocomplete-item';
+        div.innerHTML='<span class="ac-code">'+getCode(it)+'</span>'+getName(it)+
+          (getSub ? '<span class="ac-sub">'+getSub(it)+'</span>' : '');
+        div.addEventListener('mousedown', e=>{ e.preventDefault(); selectItem(it); });
+        list.appendChild(div);
+      });
+      activeIdx=-1;
+      list.classList.add('open');
+    }
+
+    function selectItem(it){
+      inp.value = getCode(it) + ' — ' + getName(it);
+      list.classList.remove('open');
+      activeIdx=-1;
+    }
+
+    inp.addEventListener('input', ()=>{ renderList(filterItems(inp.value.split('—')[0].trim())); });
+    inp.addEventListener('focus', ()=>{ if(inp.value) renderList(filterItems(inp.value.split('—')[0].trim())); else renderList(items); });
+    inp.addEventListener('blur', ()=>{ setTimeout(()=>list.classList.remove('open'),150); });
+
+    inp.addEventListener('keydown', e=>{
+      const divs = list.querySelectorAll('.autocomplete-item');
+      if(e.key==='ArrowDown'){ e.preventDefault(); activeIdx=Math.min(activeIdx+1,divs.length-1); divs.forEach((d,i)=>d.classList.toggle('active',i===activeIdx)); }
+      else if(e.key==='ArrowUp'){ e.preventDefault(); activeIdx=Math.max(activeIdx-1,-1); divs.forEach((d,i)=>d.classList.toggle('active',i===activeIdx)); }
+      else if(e.key==='Enter' && activeIdx>=0){ e.preventDefault(); divs[activeIdx].dispatchEvent(new MouseEvent('mousedown')); }
+      else if(e.key==='Escape'){ list.classList.remove('open'); }
+    });
+  }
+
 
   const CLAUDE_PROMPT='Analiza esta imagen (o estas imágenes). Pueden contener uno o más tickets de pedido de entrega del videojuego Derail Valley.\n\nExtrae TODOS los tickets visibles y devuelve ÚNICAMENTE un array JSON. Sin bloques de código, sin texto antes o después. Solo el JSON.\n\nFormato:\n[\n  {\n    "jobCode": "CME-LH-57",\n    "jobType": "flete-logistico",\n    "origin": "Mina de Carbón Este",\n    "destination": "Puerto y Pueblo",\n    "cars": 8,\n    "trainWeight": 260.00,\n    "trainLength": 183.55,\n    "trainValue": 0.26,\n    "trainValueUnit": "m",\n    "requiredLicenses": "DVHR LH, LONG II",\n    "basePaymentPlanned": 20492,\n    "bonusDeadlineMin": 56\n  }\n]\n\nReglas:\n- jobType: "maniobras" (Shunting), "flete" (Freight Haul) o "flete-logistico" (Logistical Haul)\n- trainValue: el número tal como aparece (ej: $0,26m → 0.26)\n- trainValueUnit: "m" millones, "k" miles, "1" dólares directos\n- basePaymentPlanned: el número grande del botón verde, sin $\n- Campos no visibles: null\n- Múltiples tickets: todos como elementos del array\n- Devuelve ÚNICAMENTE el array JSON, nada más';
   let jobSlots=[]; let pendingJobs=[];
@@ -2185,6 +2276,223 @@ render();
     document.getElementById('claudeJsonInput').value=''; document.getElementById('previewBox').style.display='none'; pendingJobs=[];
   }
 
+  /* ---- BLOQUE RESTAURADO de v1.8.2, adaptado para multi-job (jobs[]) ---- */
+
+  document.getElementById('saveTrip').addEventListener('click', async ()=>{
+    const entry = readTripForm();
+    if(editingTripId){
+      const idx = trips.findIndex(t=>t.id===editingTripId);
+      if(idx>=0) trips[idx]=entry; else trips.push(entry);
+    } else {
+      trips.push(entry);
+    }
+    await saveTrips();
+    clearTripForm();
+    renderTrips();
+  });
+
+  document.getElementById('cancelEditTrip').addEventListener('click', clearTripForm);
+
+  function iv(label, value){
+    const v = (value===null||value===undefined||value==='') ? '—' : value;
+    return '<div class="info-row"><span class="info-label">'+label+'</span><span class="info-value">'+v+'</span></div>';
+  }
+
+  function renderTripInfoHTML(t, m){
+    const nt = normalizeTrip(t);
+    let html = '';
+
+    nt.jobs.forEach((j, i)=>{
+      html += '<div class="info-section"><h4>Trabajo #'+(i+1)+'</h4>';
+      html += iv('Código', escHtml(j.jobCode));
+      html += iv('Tipo', jobTypeLabel(j.jobType));
+      html += iv('Origen', escHtml(j.origin));
+      html += iv('Destino', escHtml(j.destination));
+      html += iv('Vagones', j.cars);
+      html += iv('Peso del tren', (j.trainWeight!==null && j.trainWeight!==undefined) ? j.trainWeight+' t' : null);
+      html += iv('Largo del tren', (j.trainLength!==null && j.trainLength!==undefined) ? j.trainLength+' m' : null);
+      html += iv('Valor del tren', (j.trainValue!==null && j.trainValue!==undefined) ? fmtMoney(j.trainValue) : null);
+      html += iv('Licencias requeridas', escHtml(j.requiredLicenses));
+      html += iv('Pago base planeado', (j.basePaymentPlanned!==null && j.basePaymentPlanned!==undefined) ? fmtMoney(j.basePaymentPlanned) : null);
+      html += iv('Plazo de bono', (j.bonusDeadlineMin!==null && j.bonusDeadlineMin!==undefined) ? j.bonusDeadlineMin+' min' : null);
+      html += iv('Pago real recibido', (j.realPayment!==null && j.realPayment!==undefined) ? fmtMoney(j.realPayment) : null);
+      html += '</div>';
+    });
+
+    html += '<div class="info-section"><h4>Datos generales del viaje</h4>';
+    html += iv('Locomotora', escHtml(nt.locomotive));
+    html += iv('Distancia recorrida', (nt.distanceKm!==null && nt.distanceKm!==undefined) ? nt.distanceKm+' km' : null);
+    html += iv('Tiempo transcurrido', (m.duration!==null) ? fmtDuration(m.duration) : null);
+    html += iv('Mantenimiento total', (nt.maintenanceCost!==null && nt.maintenanceCost!==undefined) ? fmtMoney(nt.maintenanceCost) : null);
+    html += iv('¿Bono logrado?', bonusLabel(nt.bonusAchieved));
+    html += iv('Incidente', incidentLabel(nt.incident));
+    html += '</div>';
+
+    html += '<div class="info-section"><h4>Resultados calculados</h4>';
+    html += iv('Pago neto', (m.net!==null) ? fmtMoney(m.net) : null);
+    html += iv('$ / hora', (m.perHour!==null) ? fmtMoney(m.perHour) : null);
+    html += iv('$ / km', (m.perKm!==null) ? fmtMoney(m.perKm) : null);
+    html += iv('$ / vagón', (m.perCar!==null) ? fmtMoney(m.perCar) : null);
+    if(m.totalReal!==null && m.totalReal!==undefined && m.totalBase!==null && m.totalBase!==undefined && m.totalReal>0){
+      const diff = m.totalReal - m.totalBase;
+      html += iv('Real vs. plan (todos los trabajos)', (diff>=0?'+':'')+fmtMoney(diff));
+    }
+    html += '</div>';
+
+    if(nt.notes){
+      html += '<div class="info-section"><h4>Notas</h4><div class="info-notes">'+escHtml(nt.notes)+'</div></div>';
+    }
+
+    html += '<div class="info-section"><h4>Metadatos</h4>';
+    html += iv('Guardado el', nt.savedAt ? new Date(nt.savedAt).toLocaleString('es-CO') : null);
+    html += iv('ID interno', escHtml(nt.id));
+    html += '</div>';
+
+    return html;
+  }
+
+  function openTripInfo(id){
+    const t = trips.find(x=>x.id===id);
+    if(!t) return;
+    const m = computeTripMetrics(t);
+    document.getElementById('modal-body').innerHTML = renderTripInfoHTML(t, m);
+    document.getElementById('tripInfoModal').classList.add('open');
+  }
+  function closeTripInfo(){
+    document.getElementById('tripInfoModal').classList.remove('open');
+  }
+  document.getElementById('modalCloseBtn').addEventListener('click', closeTripInfo);
+  document.getElementById('tripInfoModal').addEventListener('click', (e)=>{
+    if(e.target.id==='tripInfoModal') closeTripInfo();
+  });
+  document.addEventListener('keydown', (e)=>{
+    if(e.key==='Escape') closeTripInfo();
+  });
+
+  function tripCalloutHTML(x){
+    const t = x.t, m = x.m, nt = normalizeTrip(t);
+    const diff = (m.totalReal>0 && m.totalBase!==null && m.totalBase!==undefined) ? (m.totalReal - m.totalBase) : null;
+    const routesLabel = nt.jobs.map(j=>(j.origin||'?')+' → '+(j.destination||'?')+(j.jobCode?(' · '+j.jobCode):'')).join('; ');
+    let html = '<div class="trip-route">'+routesLabel+'</div>';
+    html += '<div class="callout-row"><span>$ / hora real</span><span>'+fmtMoney(m.perHour)+'</span></div>';
+    html += '<div class="callout-row"><span>Pago neto</span><span>'+fmtMoney(m.net)+'</span></div>';
+    html += '<div class="callout-row"><span>Duración</span><span>'+fmtDuration(m.duration)+'</span></div>';
+    html += '<div class="callout-row"><span>Locomotora</span><span>'+(nt.locomotive||'—')+'</span></div>';
+    if(diff!==null){
+      html += '<div class="callout-row"><span>Real vs. papel</span><span>'+(diff>=0?'+':'')+fmtMoney(diff)+'</span></div>';
+    }
+    return html;
+  }
+
+  function renderTrips(){
+    const tbody = document.getElementById('trip-body');
+    tbody.innerHTML = '';
+    const sorted = [...trips].sort((a,b)=> (b.savedAt||'').localeCompare(a.savedAt||''));
+
+    sorted.forEach(t=>{
+      const nt = normalizeTrip(t);
+      const m = computeTripMetrics(t);
+      const tr = document.createElement('tr');
+      const hasRealPayment = nt.jobs.some(j=>j.realPayment!=null);
+      const isDone = ((nt.tripDuration!==null && nt.tripDuration!==undefined) || !!nt.endTime) && hasRealPayment;
+      const statusHTML = '<span class="status-pill '+(isDone?'done':'pending')+'">'+(isDone?'Completado':'En curso')+'</span>';
+
+      const jobsHTML = nt.jobs.map(j=>
+        (j.jobCode||'—')+' · '+jobTypeLabel(j.jobType)+'<br><span class="trip-route">'+(j.origin||'?')+' → '+(j.destination||'?')+'</span>'
+      ).join('<hr style="border-color:var(--rule);opacity:.3;margin:6px 0;">');
+
+      tr.innerHTML =
+        '<td>'+(m.duration!==null ? fmtDuration(m.duration) : '—')+'</td>'+
+        '<td>'+jobsHTML+'</td>'+
+        '<td>'+statusHTML+'</td>'+
+        '<td>'+(m.perHour!==null ? fmtMoney(m.perHour) : '—')+'</td>'+
+        '<td>'+bonusLabel(nt.bonusAchieved)+'</td>'+
+        '<td><div class="trip-actions"></div></td>';
+
+      const actionsTd = tr.querySelector('.trip-actions');
+
+      if(isDone){
+        const infoBtn = document.createElement('button');
+        infoBtn.className='remove-row'; infoBtn.style.color='var(--ink-dim)';
+        infoBtn.textContent='👁'; infoBtn.title='Ver información completa';
+        infoBtn.addEventListener('click', ()=> openTripInfo(t.id));
+        actionsTd.appendChild(infoBtn);
+      }
+
+      const editBtn = document.createElement('button');
+      editBtn.className='remove-row'; editBtn.style.color='var(--amber)';
+      editBtn.textContent='✎'; editBtn.title='Editar';
+      editBtn.addEventListener('click', ()=>{
+        editingTripId = t.id;
+        fillTripForm(t);
+        document.getElementById('trip-form-status').textContent = 'Editando viaje guardado — al guardar se actualizará.';
+        document.getElementById('cancelEditTrip').style.display='inline-block';
+        document.getElementById('bitacora-form-anchor').scrollIntoView({behavior:'smooth', block:'start'});
+      });
+      const delBtn = document.createElement('button');
+      delBtn.className='remove-row'; delBtn.textContent='✕'; delBtn.title='Eliminar';
+      delBtn.addEventListener('click', async ()=>{
+        if(!confirm('¿Eliminar este viaje del historial? No se puede deshacer.')) return;
+        trips = trips.filter(x=>x.id!==t.id);
+        await saveTrips();
+        renderTrips();
+      });
+      actionsTd.appendChild(editBtn);
+      actionsTd.appendChild(delBtn);
+      tbody.appendChild(tr);
+    });
+
+    renderTripStats();
+  }
+
+  function renderTripStats(){
+    const withMetrics = trips.map(t=>({t, m:computeTripMetrics(t)}));
+    const completed = withMetrics.filter(x=>x.m.perHour!==null);
+
+    document.getElementById('stat-total-trips').textContent = trips.length;
+
+    const totalHours = withMetrics.reduce((a,x)=> a + (x.m.duration ? x.m.duration/60 : 0), 0);
+    document.getElementById('stat-total-hours').textContent = totalHours.toFixed(1)+'h';
+
+    const totalNet = withMetrics.reduce((a,x)=> a + (x.m.net || 0), 0);
+    document.getElementById('stat-total-net').textContent = fmtMoney(totalNet);
+
+    document.getElementById('stat-avg-hour').textContent = completed.length
+      ? fmtMoney(completed.reduce((a,x)=>a+x.m.perHour,0)/completed.length) : '—';
+
+    const withKm = withMetrics.filter(x=>x.m.perKm!==null);
+    document.getElementById('stat-avg-km').textContent = withKm.length
+      ? fmtMoney(withKm.reduce((a,x)=>a+x.m.perKm,0)/withKm.length) : '—';
+
+    const withBonusInfo = trips.filter(t=>t.bonusAchieved==='si'||t.bonusAchieved==='no');
+    const bonusYes = trips.filter(t=>t.bonusAchieved==='si').length;
+    document.getElementById('stat-bonus-rate').textContent = withBonusInfo.length
+      ? Math.round(100*bonusYes/withBonusInfo.length)+'%' : '—';
+
+    const totalCars = trips.reduce((a,t)=>{
+      const nt = normalizeTrip(t);
+      return a + nt.jobs.reduce((s,j)=>s+(j.cars||0),0);
+    },0);
+    document.getElementById('stat-total-cars').textContent = totalCars;
+
+    const bestBox = document.getElementById('best-trip');
+    const worstBox = document.getElementById('worst-trip');
+    if(completed.length>0){
+      const best = completed.reduce((a,b)=> b.m.perHour>a.m.perHour ? b : a);
+      bestBox.innerHTML = tripCalloutHTML(best);
+      if(completed.length>1){
+        const worst = completed.reduce((a,b)=> b.m.perHour<a.m.perHour ? b : a);
+        worstBox.innerHTML = tripCalloutHTML(worst);
+      } else {
+        worstBox.innerHTML = '<p class="callout-empty">Necesitas al menos 2 viajes completados para comparar.</p>';
+      }
+    } else {
+      bestBox.innerHTML = '<p class="callout-empty">Aún no hay viajes completados con pago y duración registrados.</p>';
+      worstBox.innerHTML = '<p class="callout-empty">Aún no hay suficientes datos.</p>';
+    }
+  }
+
+  // sendToBitacora eliminado en v1.6.1 — el evaluador ya no tiene esos campos
 
   /* ============ PESTAÑAS ============ */
 
